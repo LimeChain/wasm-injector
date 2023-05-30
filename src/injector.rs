@@ -1,4 +1,4 @@
-use crate::maybe_compressed_blob::{compress, decompress};
+use crate::maybe_compressed_blob::{CODE_BLOB_BOMB_LIMIT, compress, decompress};
 use parity_wasm::elements;
 use std::collections::VecDeque;
 use std::fs::{self, read};
@@ -8,8 +8,6 @@ use wasm_instrument::parity_wasm::{
     elements::{Instruction, Instructions, Module},
     serialize,
 };
-
-pub const BLOB_SIZE_LIMIT: usize = 100_000_000;
 
 fn save(
     path: &str,
@@ -52,7 +50,7 @@ fn save(
 pub fn sed_validate_block(path: &str, file_name: &str) -> Option<()> {
     let full_path = &format!("{}/{}", path, file_name);
     let orig_bytes = &read(full_path).unwrap();
-    let decompressed_bytes = decompress(orig_bytes, BLOB_SIZE_LIMIT).expect("Couldn't decompress");
+    let decompressed_bytes = decompress(orig_bytes, CODE_BLOB_BOMB_LIMIT).expect("Couldn't decompress");
 
     // Extract the modules from the WASM bytes
     let mut module: Module = deserialize_buffer(decompressed_bytes.as_ref()).unwrap();
