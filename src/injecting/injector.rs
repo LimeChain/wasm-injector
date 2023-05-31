@@ -1,20 +1,4 @@
-use sp_maybe_compressed_blob::{decompress, CODE_BLOB_BOMB_LIMIT};
-use wasm_instrument::parity_wasm::{
-    deserialize_buffer,
-    elements::{FuncBody, Internal::Function, Module},
-    serialize,
-};
-
-// Extract the module from the (maybe compressed) WASM bytes
-pub fn module_from_blob(blob_bytes: &[u8]) -> Option<Module> {
-    let blob_bytes = decompress(blob_bytes, CODE_BLOB_BOMB_LIMIT).expect("Couldn't decompress");
-
-    deserialize_buffer(blob_bytes.as_ref()).ok()
-}
-
-pub fn blob_from_module(module: Module) -> Option<Vec<u8>> {
-    serialize(module).ok()
-}
+use wasm_instrument::parity_wasm::elements::{FuncBody, Internal::Function, Module};
 
 pub trait ModuleMapper {
     fn map_function(
