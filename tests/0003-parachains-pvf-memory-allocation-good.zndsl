@@ -1,5 +1,6 @@
 Description: PVF memory allocation
 Network: ./parachains-pvf.toml
+Creds: config
 
 # Check authority status.
 alice: reports node_roles is 4
