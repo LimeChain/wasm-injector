@@ -1,133 +1,76 @@
-use crate::maybe_compressed_blob::{CODE_BLOB_BOMB_LIMIT, compress, decompress};
-use parity_wasm::elements;
-use std::collections::VecDeque;
-use std::fs::{self, read};
-use std::io::Write;
+use sp_maybe_compressed_blob::{decompress, CODE_BLOB_BOMB_LIMIT};
 use wasm_instrument::parity_wasm::{
     deserialize_buffer,
-    elements::{Instruction, Instructions, Module},
+    elements::{FuncBody, Internal::Function, Module},
     serialize,
 };
 
-fn save(
-    path: &str,
-    file_name: &str,
-    bytes: &[u8],
-    name_modifiers: Vec<&str>,
-    ext_modifiers: Vec<&str>,
-) {
-    match fs::OpenOptions::new()
-        .create(true)
-        .write(true)
-        .open(format!(
-            "{}/{}{}{}",
-            path,
-            name_modifiers
-                .iter()
-                .map(|s| format!("{}_", s.to_lowercase()))
-                .collect::<String>(),
-            file_name,
-            ext_modifiers
-                .iter()
-                .map(|s| format!(".{}", s.to_lowercase()))
-                .collect::<String>()
-        )) {
-        Ok(mut file) => {
-            file.write_all(bytes).expect("Couldn't write to file");
-            println!(
-                "Wrote {} wasm to file",
-                name_modifiers
-                    .iter()
-                    .map(|s| str::to_uppercase(s))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            );
-        }
-        Err(e) => println!("Error: {}", e),
-    };
+// Extract the module from the (maybe compressed) WASM bytes
+pub fn module_from_blob(blob_bytes: &[u8]) -> Option<Module> {
+    let blob_bytes = decompress(blob_bytes, CODE_BLOB_BOMB_LIMIT).expect("Couldn't decompress");
+
+    deserialize_buffer(blob_bytes.as_ref()).ok()
 }
 
-pub fn sed_validate_block(path: &str, file_name: &str) -> Option<()> {
-    let full_path = &format!("{}/{}", path, file_name);
-    let orig_bytes = &read(full_path).unwrap();
-    let decompressed_bytes = decompress(orig_bytes, CODE_BLOB_BOMB_LIMIT).expect("Couldn't decompress");
+pub fn blob_from_module(module: Module) -> Option<Vec<u8>> {
+    serialize(module).ok()
+}
 
-    // Extract the modules from the WASM bytes
-    let mut module: Module = deserialize_buffer(decompressed_bytes.as_ref()).unwrap();
-    println!("Original module len: {}", orig_bytes.len());
+pub trait ModuleMapper {
+    fn map_function(
+        &mut self,
+        function_name: &str,
+        body_mapper: impl Fn(&mut FuncBody),
+    ) -> Result<(), String>;
 
-    // Find the `validate_block` function index
-    let validate_block_index = module
-        .export_section()?
-        .entries()
-        .iter()
-        .find_map(|export| match export.internal() {
-            elements::Internal::Function(index) if export.field() == "validate_block" => {
-                Some(index)
-            }
-            _ => None,
-        })?
-        .to_owned();
+    fn map_functions(
+        &mut self,
+        function_name_body_mapper_pairs: Vec<(&str, impl Fn(&mut FuncBody))>,
+    ) -> Result<(), String> {
+        function_name_body_mapper_pairs
+            .into_iter()
+            .try_for_each(|(function_name, body_mapper)| {
+                self.map_function(function_name, body_mapper)
+            })
+    }
+}
 
-    // Extract the `validate_block` instructions
-    let verify_block_body = module
-        .code_section_mut()?
-        .bodies_mut()
-        .get_mut(validate_block_index as usize)?
-        .code_mut()
-        .elements_mut();
+impl ModuleMapper for Module {
+    fn map_function(
+        &mut self,
+        function_name: &str,
+        body_mapper: impl Fn(&mut FuncBody),
+    ) -> Result<(), String> {
+        // Find the function index
+        let function_index = self
+            .export_section()
+            .ok_or("No export section")?
+            .entries()
+            .iter()
+            .find_map(|export| match export.internal() {
+                Function(index) if export.field() == function_name => Some(index),
+                _ => None,
+            })
+            .ok_or(format!(
+                "Function '{}' not found in the export section",
+                function_name
+            ))?
+            .to_owned();
 
-    // Prepare new instructions
-    // TODO: parametrize on the instructions
-    let return_value: i64 = 123456789;
-    let new_instructions = Instructions::new(vec![
-        // Last value on the stack gets returned
-        Instruction::I64Const(return_value),
-        Instruction::End,
-    ]);
+        // Extract the `validate_block` instructions
+        let function_body = self
+            .code_section_mut()
+            .ok_or("No code section")?
+            .bodies_mut()
+            .get_mut(function_index as usize)
+            .ok_or(format!(
+                "Function '{}' not found in the code section",
+                function_name
+            ))?;
 
-    // Substisture the new instructions
-    verify_block_body.clear();
-    verify_block_body.extend(new_instructions.elements().to_vec());
+        // Map over the function_body
+        body_mapper(function_body);
 
-    let injected_bytes = serialize(module).unwrap();
-    println!("Injected module len: {}", injected_bytes.len());
-
-    save(path, file_name, &injected_bytes, vec!["injected"], vec![]);
-
-    let compressed_bytes = compress(&injected_bytes, BLOB_SIZE_LIMIT).unwrap();
-    println!("Compressed injected module len: {}", compressed_bytes.len());
-
-    save(
-        path,
-        file_name,
-        &compressed_bytes,
-        vec!["compressed", "injected"],
-        vec![],
-    );
-
-    let mut hexified_bytes = compressed_bytes
-        .iter()
-        .map(|byte| format!("{:02x}", byte))
-        .collect::<String>()
-        .bytes()
-        .collect::<VecDeque<_>>();
-    hexified_bytes.push_front(b'x');
-    hexified_bytes.push_front(b'0');
-
-    let hexified_bytes = hexified_bytes.into_iter().collect::<Vec<_>>();
-    println!(
-        "Hexified compressed injected module len: {}",
-        hexified_bytes.len()
-    );
-
-    save(
-        path,
-        file_name,
-        &hexified_bytes,
-        vec!["hexified", "compressed", "injected"],
-        vec!["hex"],
-    );
-
-    Some(())
+        Ok(())
+    }
 }

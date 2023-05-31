@@ -4,12 +4,12 @@ extern crate alloc;
 
 use alloc::{vec, vec::Vec};
 use core::mem;
-use parity_wasm::{
+use wasm_instrument::parity_wasm::{
     builder,
     elements::{self, Instruction, Instructions, Type},
 };
 
-use crate::maybe_compressed_blob::{compress, decompress};
+use sp_maybe_compressed_blob::{compress, decompress};
 use std::fs::{self, read};
 use std::io::Write;
 pub use wasm_instrument;
@@ -87,7 +87,10 @@ fn decompress_takovata(path: &str, file_name: &str) {
     let full_path = &format!("{}/{}", path, file_name);
     let orig_bytes = &read(full_path).unwrap();
     let decompressed_bytes = decompress(orig_bytes, 10_000_000).expect("Couldn't decompress");
-    let _ = std::fs::write(format!("{}/decompressed_{}", path, file_name), decompressed_bytes);
+    let _ = std::fs::write(
+        format!("{}/decompressed_{}", path, file_name),
+        decompressed_bytes,
+    );
 }
 
 fn show_information(path: &str, file_name: &str) {
@@ -143,4 +146,3 @@ mod tests {
         decompress_takovata(path, file_name);
     }
 }
-
