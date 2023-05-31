@@ -2,9 +2,8 @@
 timeout = 1000
 
 [relaychain]
-# default_image = "{{ZOMBIENET_INTEGRATION_TEST_IMAGE}}"
 default_image = "docker.io/parity/polkadot:latest"
-default_command = "polkadot"
+default_command = "{{ZOMBIENET_DEFAULT_START_COMMAND}}"
 default_args = [ "-lparachain=debug" ]
 
 chain = "rococo-local"
@@ -23,12 +22,10 @@ requests = { memory = "2G", cpu = "1" }
 
 [[parachains]]
 id = 2000
-# wasm_genesis_path="../statemine_runtime.wasm"
-wasm_genesis_path="{{PVF_PATH}}"
+wasm_genesis_path="./pvf/EXECUTION_OVERFLOW.wasm"
 
   [parachains.collator]
   name = "collator01"
-#  image = "{{COL_IMAGE}}"
   image = "docker.io/parity/polkadot-parachain:latest"
   command = "polkadot-parachain"
   args = ["-lparachain=debug"]

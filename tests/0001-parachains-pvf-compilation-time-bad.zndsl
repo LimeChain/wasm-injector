@@ -1,5 +1,5 @@
 Description: PVF execution time
-Network: ./parachains-pvf.toml
+Network: ./0001-parachains-pvf-compilation-time-bad.toml
 Creds: config
 
 # Check authority status.

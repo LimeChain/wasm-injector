@@ -1,5 +1,5 @@
 Description: PVF memory allocation
-Network: ./parachains-pvf.toml
+Network: ./0003-parachains-pvf-memory-allocation-good.toml
 Creds: config
 
 # Check authority status.
