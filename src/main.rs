@@ -22,7 +22,7 @@ fn main() {
     let mut module = load_module_from_wasm(full_path).unwrap();
 
     // "Inject" the module
-    injections::inject_jibberish_return_value(&mut module).unwrap();
+    injections::inject_stack_overflow(&mut module).unwrap();
 
     // Save the modified module
     save_module_to_wasm(module, path, file_name).unwrap();

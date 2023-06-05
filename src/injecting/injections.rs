@@ -27,9 +27,9 @@ pub fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> 
 
 pub fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody| {
-        *func_body.locals_mut() = vec![
+        func_body.locals_mut().append(&mut vec![
             // Creating 100 `i64`s should cause the stack to overflow
             Local::new(100, ValueType::I64),
-        ];
+        ]);
     })
 }
