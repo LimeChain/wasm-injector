@@ -33,3 +33,27 @@ pub fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
         ]);
     })
 }
+
+pub fn inject_noops(module: &mut Module) -> Result<(), String> {
+    module.map_function("validate_block", |func_body: &mut FuncBody| {
+        // Add a million NoOpeartions to (hopefully) slow down interpretation-time
+        let code = func_body.code_mut();
+
+        let mut nops = vec![Instruction::Nop; 1_000_000];
+        nops.append(code.elements_mut());
+
+        *code.elements_mut() = nops;
+    })
+}
+
+pub fn inject_heap_overload(module: &mut Module) -> Result<(), String> {
+    module.map_function("validate_block", |func_body: &mut FuncBody| {
+        *func_body.locals_mut() = vec![];
+        *func_body.code_mut() = Instructions::new(vec![
+            // Try to allocate 255 pages
+            Instruction::GrowMemory(u8::max_value()),
+            Instruction::I64Const(0),
+            Instruction::End,
+        ]);
+    })
+}
