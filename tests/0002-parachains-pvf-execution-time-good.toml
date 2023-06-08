@@ -22,7 +22,7 @@ requests = { memory = "2G", cpu = "1" }
 
 [[parachains]]
 id = 2000
-wasm_genesis_path="./pvf/statemine.wasm"
+genesis_wasm_path="./pvf/statemine.wasm"
 
   [parachains.collator]
   name = "collator01"

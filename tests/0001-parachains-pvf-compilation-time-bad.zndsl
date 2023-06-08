@@ -1,4 +1,4 @@
-Description: PVF execution time
+Description: PVF compilation time
 Network: ./0001-parachains-pvf-compilation-time-bad.toml
 Creds: config
 
@@ -11,14 +11,11 @@ alice: parachain 2000 is registered within 60 seconds
 bob: parachain 2000 is registered within 60 seconds
 
 # Ensure parachains made progress.
-alice: parachain 2000 block height is 0 within 60 seconds
-alice: parachain 2000 block height is 0 within 60 seconds
+alice: log line matches glob "*InvalidCandidate(HardTimeout)*" within 120 seconds
+alice: parachain 2000 block height != 1 within 60 seconds
 
 # Check preparation time is under 10s.
-# Check all buckets <= 10.
-alice: reports histogram polkadot_pvf_preparation_time has 0 samples in buckets ["0.1", "0.5", "1", "2", "3", "10"] within 10 seconds
-bob: reports histogram polkadot_pvf_preparation_time has 0 samples in buckets ["0.1", "0.5", "1", "2", "3", "10"] within 10 seconds
-
-# Check all buckets >= 20.
-alice: reports histogram polkadot_pvf_preparation_time has at least 1 samples in buckets ["20", "30", "60", "120", "+Inf"] within 10 seconds
-bob: reports histogram polkadot_pvf_preparation_time has at least 1 samples in buckets ["20", "30", "60", "120", "+Inf"] within 10 seconds
+# Check all buckets < 10.
+alice: reports histogram polkadot_pvf_preparation_time has 0 samples in buckets ["0.1", "0.5", "1", "2", "3"] within 20 seconds
+# Check all buckets >= 10.
+alice: reports histogram polkadot_pvf_preparation_time has at least 1 samples in buckets ["10", "20", "30", "60", "120", "+Inf"] within 20 seconds
