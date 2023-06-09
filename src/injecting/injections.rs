@@ -6,6 +6,7 @@ use super::injector::ModuleMapper;
 
 pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody| {
+        *func_body.locals_mut() = vec![];
         *func_body.code_mut() = Instructions::new(vec![
             // Loop never ends
             Instruction::Block(BlockType::Value(ValueType::I64)),
@@ -36,10 +37,10 @@ pub fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
 
 pub fn inject_noops(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody| {
-        // Add a million NoOpeartions to (hopefully) slow down interpretation-time
+        // Add half a billion NoOpeartions to (hopefully) slow down interpretation-time
         let code = func_body.code_mut();
 
-        let mut nops = vec![Instruction::Nop; 1_000_000];
+        let mut nops = vec![Instruction::Nop; 500_000_000];
         nops.append(code.elements_mut());
 
         *code.elements_mut() = nops;
