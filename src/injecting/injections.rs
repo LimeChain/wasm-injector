@@ -9,7 +9,8 @@ pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
         *func_body.locals_mut() = vec![];
         *func_body.code_mut() = Instructions::new(vec![
             // Loop never ends
-            Instruction::Block(BlockType::Value(ValueType::I64)),
+            Instruction::Loop(BlockType::Value(ValueType::I64)),
+            // Instruction::Nop,
             Instruction::Br(0),
             Instruction::End,
         ]);
