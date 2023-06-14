@@ -2,7 +2,7 @@ use wasm_instrument::parity_wasm::elements::{
     BlockType, FuncBody, Instruction, Instructions, Local, Module, ValueType,
 };
 
-use super::injector::ModuleMapper;
+use super::injector::FunctionMapper;
 
 pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody| {

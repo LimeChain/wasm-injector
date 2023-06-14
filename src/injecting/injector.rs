@@ -1,6 +1,6 @@
-use wasm_instrument::parity_wasm::elements::{External, FuncBody, Internal::Function, Module};
+use wasm_instrument::parity_wasm::elements::{FuncBody, Internal::Function, Module, ImportSection};
 
-pub trait ModuleMapper {
+pub trait FunctionMapper {
     fn map_function(
         &mut self,
         function_name: &str,
@@ -19,14 +19,19 @@ pub trait ModuleMapper {
     }
 }
 
-impl ModuleMapper for Module {
+impl FunctionMapper for Module {
     fn map_function(
         &mut self,
         function_name: &str,
         body_mapper: impl Fn(&mut FuncBody),
     ) -> Result<(), String> {
-        // Find the function index
-        let function_index: usize = self
+        // NOTE:
+        // Indexing for local functions includes both imported and own (local)
+        // functions. So we actually need the imported function count to resolve the
+        // actual index of the given function in own functions list.
+
+        // Find the global function index
+        let global_function_index: usize = self
             .export_section()
             .ok_or("No export section")?
             .entries()
@@ -43,29 +48,22 @@ impl ModuleMapper for Module {
             .try_into()
             .map_err(|err| format!("Couldn't map u32 to usize: {}", err))?;
 
-        // This counts the number of _function_ imports listed by the module, excluding
-        // the globals, since indexing for actual functions for `call` and `export` purposes
-        // includes both imported and own functions. So we actually need the imported function count
-        // to resolve actual index of the given function in own functions list.
-        let import_section_len: usize = match self.import_section() {
-            Some(import) => import
-                .entries()
-                .iter()
-                .filter(|entry| matches!(entry.external(), &External::Function(_)))
-                .count(),
-            None => 0,
-        };
+        // Count the number of imported functions listed by the module
+        let import_section_len: usize = self
+            .import_section()
+            .map(ImportSection::functions)
+            .unwrap_or(0);
 
-        // Subtract the value queried in the previous step from the provided index
-        // to get own function index from which we can query type next.
-        let function_index_in_section = function_index - import_section_len;
+        // Compute the local function index (for the code section) by subtracting
+        // the number of imported functions from the global function index
+        let local_function_index = global_function_index - import_section_len;
 
-        // Extract the `validate_block` instructions
+        // Extract the `${function_name}` function_body
         let function_body = self
             .code_section_mut()
             .ok_or("No code section")?
             .bodies_mut()
-            .get_mut(function_index_in_section)
+            .get_mut(local_function_index)
             .ok_or(format!(
                 "Function '{}' not found in the code section",
                 function_name
