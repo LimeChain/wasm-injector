@@ -6,14 +6,18 @@ use super::injector::ModuleMapper;
 
 pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody| {
-        *func_body.locals_mut() = vec![];
-        *func_body.code_mut() = Instructions::new(vec![
+        let code = func_body.code_mut();
+
+        let mut code_with_loop = vec![
             // Loop never ends
-            Instruction::Loop(BlockType::Value(ValueType::I64)),
-            // Instruction::Nop,
+            Instruction::Loop(BlockType::NoResult),
+            Instruction::Nop,
             Instruction::Br(0),
             Instruction::End,
-        ]);
+        ];
+        code_with_loop.append(code.elements_mut());
+
+        *code.elements_mut() = code_with_loop;
     })
 }
 

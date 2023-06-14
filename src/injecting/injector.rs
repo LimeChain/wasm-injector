@@ -26,7 +26,7 @@ impl ModuleMapper for Module {
         body_mapper: impl Fn(&mut FuncBody),
     ) -> Result<(), String> {
         // Find the function index
-        let function_index = self
+        let mut function_index: usize = self
             .export_section()
             .ok_or("No export section")?
             .entries()
@@ -39,14 +39,24 @@ impl ModuleMapper for Module {
                 "Function '{}' not found in the export section",
                 function_name
             ))?
-            .to_owned();
+            .to_owned()
+            .try_into()
+            .map_err(|err| format!("Couldn't map u32 to usize: {}", err))?;
+
+        // Readjust the function index
+        let index_count = self
+            .import_section()
+            .ok_or("No import section")?
+            .entries()
+            .len();
+        function_index -= index_count;
 
         // Extract the `validate_block` instructions
         let function_body = self
             .code_section_mut()
             .ok_or("No code section")?
             .bodies_mut()
-            .get_mut(function_index as usize)
+            .get_mut(function_index)
             .ok_or(format!(
                 "Function '{}' not found in the code section",
                 function_name
