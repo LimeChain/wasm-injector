@@ -74,13 +74,23 @@ pub fn save_module_to_wasm(module: Module, path: &str, file_name: &str) -> Resul
     save(
         path,
         file_name,
+        // Just injection
         &injected_bytes,
         vec!["injected"],
         vec![],
-    ).unwrap();
+    )?;
 
     // Compress serialized bytes
-    let compressed_bytes = compress(&injected_bytes, CODE_BLOB_BOMB_LIMIT).unwrap();
+    let compressed_bytes = compress(&injected_bytes, CODE_BLOB_BOMB_LIMIT).ok_or("Bomb bomb")?;
+
+    save(
+        path,
+        file_name,
+        // Injection and compression
+        &compressed_bytes,
+        vec!["compressed", "injected"],
+        vec![],
+    )?;
 
     // Hexify compressed bytes
     let hexified_bytes = hexify_bytes(compressed_bytes);
@@ -88,10 +98,13 @@ pub fn save_module_to_wasm(module: Module, path: &str, file_name: &str) -> Resul
     save(
         path,
         file_name,
+        // Injection, compression and hexification
         &hexified_bytes,
-        vec!["hexified", "injected"],
+        vec!["hexified", "compressed", "injected"],
         vec!["hex"],
-    )
+    )?;
+
+    Ok(())
 }
 
 pub fn hexify_bytes(bytes: Vec<u8>) -> Vec<u8> {
