@@ -22,7 +22,8 @@ requests = { memory = "2G", cpu = "1" }
 
 [[parachains]]
 id = 2000
-genesis_wasm_path="./new/NOOPS_hexified_injected_rococo_v9420.wasm.hex"
+genesis_wasm_path="./wasm/PATCHED_rococo_v9420.wasm.hex"
+
   [parachains.collator]
   name = "collator01"
   image = "docker.io/parity/polkadot-parachain:latest"

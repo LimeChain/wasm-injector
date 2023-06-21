@@ -23,7 +23,7 @@ requests = { memory = "2G", cpu = "1" }
 
 [[parachains]]
 id = 2000
-genesis_wasm_path="./pvf/COMPILATION_OVERFLOW.wasm"
+genesis_wasm_path="./wasm/PATCHED_rococo_v9420.wasm.hex"
 
   [parachains.collator]
   name = "collator01"
