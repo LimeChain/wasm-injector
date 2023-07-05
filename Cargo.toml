@@ -4,16 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.3.10", features = [ "derive" ] }
 sp-maybe-compressed-blob = "5.0.0"
 thiserror = "1.0.40"
 wasm-instrument = "0.4.0"
 wat = "1.0.63"
 zstd = "0.12.3+zstd.1.5.2"
 
-[lib]
-name = "wasm_injector"
-path = "src/lib.rs"
-
 [[bin]]
 name = "wasm_injector"
 path = "src/main.rs"
+
+[lib]
+name = "wasm_injector"
+path = "src/lib.rs"

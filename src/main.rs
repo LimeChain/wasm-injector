@@ -1,55 +1,42 @@
-use std::{collections::VecDeque, env};
-use wasm_injector::injecting::injections;
-use wasm_injector::util::{load_module_from_wasm, save_module_to_wasm};
+use clap::{Parser, ValueHint};
+use std::path::PathBuf;
+use wasm_injector::injecting::injections::Injection;
+use wasm_injector::util::{load_module_from_wasm, modify_file_name, save_module_to_wasm};
 
-fn main() -> Result<(), String> {
-    // Get arguments
-    let mut args = env::args().collect::<VecDeque<_>>();
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(index = 1, required = true, value_name = "injection")]
+    injection: Injection,
 
-    // Pop $0
-    args.pop_front();
+    #[arg(index = 2, required = true, value_name = "wasm source file", value_hint = ValueHint::FilePath)]
+    source: PathBuf,
 
-    // Path is the first argument
-    let path = &args.pop_front().ok_or("Path")?;
-
-    // Filename is the second argument
-    let file_name = &args.pop_front().ok_or("Filename")?;
-
-    // Calculate full path
-    let full_path = &format!("{}/{}", path, file_name);
-
-    // Get the module
-    let mut module = load_module_from_wasm(full_path)?;
-
-    // "Inject" the module
-    injections::inject_infinite_loop(&mut module)?;
-
-    // Save the modified module
-    save_module_to_wasm(module, path, file_name)?;
-
-    Ok(())
+    #[arg(index = 3, value_name = "destination file", value_hint = ValueHint::FilePath)]
+    destination: Option<PathBuf>,
 }
 
-#[cfg(test)]
-mod tests {
-    use std::fs::read;
-    use sp_maybe_compressed_blob::{decompress, CODE_BLOB_BOMB_LIMIT};
-    use wasm_instrument::parity_wasm::{deserialize_buffer, elements::Module};
+fn main() -> Result<(), String> {
+    let Args {
+        injection,
+        source,
+        destination,
+    } = Args::parse();
 
-    #[test]
-    fn takovata() {
-        let path = "../ZigWasm/wasm";
-        let file_name = "injected_rococo-parachain_runtime-v9400.compact.compressed.wasm";
+    let default_destination = modify_file_name(source.as_path(), |file_name| {
+        format!("hexified_{}.hex", file_name)
+    })?;
 
-        let full_path = &format!("{}/{}", path, file_name);
-        let orig_bytes = &read(full_path).unwrap();
-        let decompressed_bytes = decompress(orig_bytes, CODE_BLOB_BOMB_LIMIT).expect("Couldn't decompress");
+    let destination = destination.unwrap_or(default_destination);
 
-        let module: Module = deserialize_buffer(&decompressed_bytes).unwrap();
-        println!("Original module len: {}", orig_bytes.len());
-        if module.code_section().is_none() {
-            println!("No code in module!");
-            std::process::exit(1);
-        }
-    }
+    // Get the module
+    let mut module = load_module_from_wasm(source.as_path())?;
+
+    // "Inject" the module
+    injection.inject(&mut module)?;
+
+    // Save the modified module
+    save_module_to_wasm(module, destination.as_path(), None)?;
+
+    Ok(())
 }

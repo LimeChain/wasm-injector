@@ -1,46 +1,36 @@
 use std::collections::VecDeque;
 use std::fs::{read, OpenOptions};
 use std::io::Write;
+use std::path::{Path, PathBuf};
 
 use sp_maybe_compressed_blob::{compress, decompress, CODE_BLOB_BOMB_LIMIT};
 use wasm_instrument::parity_wasm::serialize;
 use wasm_instrument::parity_wasm::{deserialize_buffer, elements::Module};
 
-pub fn save(
-    path: &str,
-    file_name: &str,
-    bytes: &[u8],
-    name_modifiers: Vec<&str>,
-    ext_modifiers: Vec<&str>,
-) -> Result<(), String> {
+pub fn save(path: &Path, bytes: &[u8]) -> Result<(), String> {
     OpenOptions::new()
         .create(true)
         .write(true)
-        .open(format!(
-            "{}/{}{}{}",
-            path,
-            name_modifiers
-                .iter()
-                .map(|s| format!("{}_", s.to_lowercase()))
-                .collect::<String>(),
-            file_name,
-            ext_modifiers
-                .iter()
-                .map(|s| format!(".{}", s.to_lowercase()))
-                .collect::<String>()
-        ))
+        .open(path)
         .map(|mut file| {
             file.write_all(bytes).expect("Could not write to file");
-            println!(
-                "Wrote {} wasm to file",
-                name_modifiers
-                    .iter()
-                    .map(|s| str::to_uppercase(s))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            );
+            println!("Wrote to {}", path.display());
         })
         .map_err(|err| format!("Could not open file: {}", err))
+}
+
+pub fn modify_file_name(path: &Path, mapper: impl Fn(&str) -> String) -> Result<PathBuf, String> {
+    let file_name = path
+        .file_name()
+        .ok_or(format!("{} is not a file", path.display()))?
+        .to_str()
+        .ok_or("Couldn't convert filename to string".to_string())?;
+
+    let mut result = PathBuf::from(path);
+
+    result.set_file_name(mapper(file_name));
+
+    Ok(result)
 }
 
 // Extract the module from the (maybe compressed) WASM bytes
@@ -56,7 +46,7 @@ pub fn blob_from_module(module: Module) -> Result<Vec<u8>, String> {
     serialize(module).map_err(|err| format!("Could not serialize module: {}", err))
 }
 
-pub fn load_module_from_wasm(path: &str) -> Result<Module, String> {
+pub fn load_module_from_wasm(path: &Path) -> Result<Module, String> {
     // Read bytes
     let orig_bytes = &read(path).map_err(|err| format!("Could not read wasm blob: {}", err))?;
 
@@ -67,41 +57,39 @@ pub fn load_module_from_wasm(path: &str) -> Result<Module, String> {
     Ok(module)
 }
 
-pub fn save_module_to_wasm(module: Module, path: &str, file_name: &str) -> Result<(), String> {
+pub fn save_module_to_wasm(module: Module, destination: &Path, debug_source: Option<&Path>) -> Result<(), String> {
     // Serialize injected module
     let injected_bytes = blob_from_module(module)?;
 
-    save(
-        path,
-        file_name,
-        // Just injection
-        &injected_bytes,
-        vec!["injected"],
-        vec![],
-    )?;
+    if let Some(source) = debug_source {
+        save(
+            modify_file_name(source, |file_name| format!("injected_{}", file_name))?.as_path(),
+            // Just injection
+            &injected_bytes,
+        )?;
+    }
 
     // Compress serialized bytes
     let compressed_bytes = compress(&injected_bytes, CODE_BLOB_BOMB_LIMIT).ok_or("Bomb bomb")?;
 
-    save(
-        path,
-        file_name,
-        // Injection and compression
-        &compressed_bytes,
-        vec!["compressed", "injected"],
-        vec![],
-    )?;
+    if let Some(source) = debug_source {
+        save(
+            modify_file_name(source, |file_name| {
+                format!("compressed_injected_{}", file_name)
+            })?
+            .as_path(),
+            // Injection and compression
+            &compressed_bytes,
+        )?;
+    }
 
     // Hexify compressed bytes
     let hexified_bytes = hexify_bytes(compressed_bytes);
 
     save(
-        path,
-        file_name,
+        destination,
         // Injection, compression and hexification
         &hexified_bytes,
-        vec!["hexified", "compressed", "injected"],
-        vec!["hex"],
     )?;
 
     Ok(())
