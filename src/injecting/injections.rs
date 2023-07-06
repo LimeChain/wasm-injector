@@ -6,6 +6,7 @@ use super::injector::FunctionMapper;
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum Injection {
+    Nothing,
     InfiniteLoop,
     JibberishReturnValue,
     StackOverflow,
@@ -23,6 +24,7 @@ type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 
 pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
     Box::new(match injection {
+        Injection::Nothing => |_| Ok(()),
         Injection::InfiniteLoop => inject_infinite_loop,
         Injection::JibberishReturnValue => inject_jibberish_return_value,
         Injection::StackOverflow => inject_stack_overflow,

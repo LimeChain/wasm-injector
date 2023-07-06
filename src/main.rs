@@ -14,6 +14,12 @@ struct Args {
 
     #[arg(index = 3, value_name = "destination file", value_hint = ValueHint::FilePath)]
     destination: Option<PathBuf>,
+
+    #[arg(long, value_name = "compressed", default_value_t = false)]
+    compressed: bool,
+
+    #[arg(long, value_name = "hexified", default_value_t = false)]
+    hexified: bool,
 }
 
 fn main() -> Result<(), String> {
@@ -21,6 +27,8 @@ fn main() -> Result<(), String> {
         injection,
         source,
         destination,
+        compressed,
+        hexified,
     } = Args::parse();
 
     let default_destination = modify_file_name(source.as_path(), |file_name| {
@@ -36,7 +44,7 @@ fn main() -> Result<(), String> {
     injection.inject(&mut module)?;
 
     // Save the modified module
-    save_module_to_wasm(module, destination.as_path(), None)?;
+    save_module_to_wasm(module, destination.as_path(), compressed, hexified)?;
 
     Ok(())
 }

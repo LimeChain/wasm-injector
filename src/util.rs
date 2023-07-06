@@ -57,39 +57,25 @@ pub fn load_module_from_wasm(path: &Path) -> Result<Module, String> {
     Ok(module)
 }
 
-pub fn save_module_to_wasm(module: Module, destination: &Path, debug_source: Option<&Path>) -> Result<(), String> {
+pub fn save_module_to_wasm(module: Module, destination: &Path, compressed: bool, hexified: bool) -> Result<(), String> {
     // Serialize injected module
-    let injected_bytes = blob_from_module(module)?;
-
-    if let Some(source) = debug_source {
-        save(
-            modify_file_name(source, |file_name| format!("injected_{}", file_name))?.as_path(),
-            // Just injection
-            &injected_bytes,
-        )?;
-    }
+    let mut bytes = blob_from_module(module)?;
 
     // Compress serialized bytes
-    let compressed_bytes = compress(&injected_bytes, CODE_BLOB_BOMB_LIMIT).ok_or("Bomb bomb")?;
-
-    if let Some(source) = debug_source {
-        save(
-            modify_file_name(source, |file_name| {
-                format!("compressed_injected_{}", file_name)
-            })?
-            .as_path(),
-            // Injection and compression
-            &compressed_bytes,
-        )?;
+    if compressed {
+        bytes = compress(&bytes, CODE_BLOB_BOMB_LIMIT).ok_or("Bomb bomb")?;
     }
 
     // Hexify compressed bytes
-    let hexified_bytes = hexify_bytes(compressed_bytes);
+    if hexified {
+        bytes = hexify_bytes(bytes);
+    }
 
+    // Save proccessed bytes
     save(
         destination,
         // Injection, compression and hexification
-        &hexified_bytes,
+        &bytes,
     )?;
 
     Ok(())
