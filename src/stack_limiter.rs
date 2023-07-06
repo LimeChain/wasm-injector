@@ -83,7 +83,7 @@ pub fn inject_single(path: &str, file_name: &str) {
     }
 }
 
-fn decompress_takovata(path: &str, file_name: &str) {
+fn decompress_wasm(path: &str, file_name: &str) {
     let full_path = &format!("{}/{}", path, file_name);
     let orig_bytes = &read(full_path).unwrap();
     let decompressed_bytes = decompress(orig_bytes, 10_000_000).expect("Couldn't decompress");
@@ -138,11 +138,11 @@ mod tests {
     }
 
     #[test]
-    fn takovata() {
+    fn decompress() {
         use super::*;
 
         let path = "wasm";
         let file_name = "rococo-parachain_runtime-v9381.compact.compressed.wasm";
-        decompress_takovata(path, file_name);
+        decompress_wasm(path, file_name);
     }
 }
