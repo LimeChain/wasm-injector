@@ -73,7 +73,7 @@ fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
                 Instruction::I32Const(1),
                 Instruction::I32Const(1),
                 // Call validate_block recursively
-                Instruction::Call(*function_index as u32),
+                Instruction::Call(function_index as u32),
             ];
 
             // Prepend the function call to the existing code

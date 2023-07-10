@@ -4,12 +4,12 @@ pub trait FunctionMapper {
     fn map_function(
         &mut self,
         function_name: &str,
-        body_mapper: impl Fn(&mut FuncBody, &usize),
+        body_mapper: impl Fn(&mut FuncBody, usize),
     ) -> Result<(), String>;
 
     fn map_functions(
         &mut self,
-        function_name_body_mapper_pairs: Vec<(&str, impl Fn(&mut FuncBody, &usize))>,
+        function_name_body_mapper_pairs: Vec<(&str, impl Fn(&mut FuncBody, usize))>,
     ) -> Result<(), String> {
         function_name_body_mapper_pairs
             .into_iter()
@@ -23,7 +23,7 @@ impl FunctionMapper for Module {
     fn map_function(
         &mut self,
         function_name: &str,
-        body_mapper: impl Fn(&mut FuncBody, &usize),
+        body_mapper: impl Fn(&mut FuncBody, usize),
     ) -> Result<(), String> {
         // NOTE:
         // Indexing for local functions includes both imported and own (local)
@@ -70,7 +70,7 @@ impl FunctionMapper for Module {
             ))?;
 
         // Map over the function_body
-        body_mapper(function_body, &global_function_index);
+        body_mapper(function_body, global_function_index);
 
         Ok(())
     }
