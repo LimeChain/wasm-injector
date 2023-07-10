@@ -1,5 +1,5 @@
 use wasm_instrument::parity_wasm::elements::{
-    BlockType, FuncBody, Instruction, Instructions, Local, Module, ValueType,
+    BlockType, FuncBody, Instruction, Instructions, Module,
 };
 
 use super::injector::FunctionMapper;
@@ -34,7 +34,7 @@ pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
 }
 
 pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody| {
+    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         let code = func_body.code_mut();
 
         let mut code_with_loop = vec![
@@ -51,7 +51,7 @@ pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
 }
 
 fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody| {
+    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         *func_body.code_mut() = Instructions::new(vec![
             // Last value on the stack gets returned
             Instruction::I64Const(123456789),
@@ -61,16 +61,31 @@ fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
 }
 
 fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody| {
-        func_body.locals_mut().append(&mut vec![
-            // Creating 100 `i64`s should cause the stack to overflow
-            Local::new(100, ValueType::I64),
-        ]);
-    })
+    module.map_function(
+        "validate_block",
+        |func_body: &mut FuncBody, function_index| {
+            let code = func_body.code_mut();
+            let elements = code.elements_mut();
+
+            // Create and instruction validate_block to call itself recursively
+            let mut function_call = vec![
+                // Set the arguments for the function call
+                Instruction::I32Const(1),
+                Instruction::I32Const(1),
+                // Call validate_block recursively
+                Instruction::Call(function_index as u32),
+            ];
+
+            // Prepend the function call to the existing code
+            function_call.append(elements);
+
+            *code.elements_mut() = function_call;
+        },
+    )
 }
 
 fn inject_noops(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody| {
+    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         // Add half a billion NoOperations to (hopefully) slow down interpretation-time
         let code = func_body.code_mut();
 
@@ -82,7 +97,7 @@ fn inject_noops(module: &mut Module) -> Result<(), String> {
 }
 
 fn inject_heap_overflow(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody| {
+    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         let code = func_body.code_mut();
 
         let mut code_with_allocation = vec![

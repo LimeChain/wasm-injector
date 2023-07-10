@@ -1,2 +1,2 @@
-pub mod injector;
 pub mod injections;
+pub mod injector;
