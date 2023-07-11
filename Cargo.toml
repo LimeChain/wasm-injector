@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.3.10", features = [ "derive" ] }
+itertools = "0.11.0"
 sp-maybe-compressed-blob = "5.0.0"
 thiserror = "1.0.40"
 wasm-instrument = "0.4.0"

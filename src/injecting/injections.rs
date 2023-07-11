@@ -4,7 +4,7 @@ use wasm_instrument::parity_wasm::elements::{
 
 use super::injector::FunctionMapper;
 
-#[derive(clap::ValueEnum, Clone, Debug)]
+#[derive(clap::ValueEnum, PartialEq, Eq, Clone, Debug)]
 pub enum Injection {
     Nothing,
     InfiniteLoop,
