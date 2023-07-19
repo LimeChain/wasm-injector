@@ -58,6 +58,21 @@ impl FunctionMapper for Module {
         // the number of imported functions from the global function index
         let local_function_index = global_function_index - import_section_len;
 
+
+        let table_section = self.import_section_mut().ok_or("No table section")?;
+        let malloc_index = table_section
+            .entries_mut()
+            .iter_mut()
+            .enumerate()
+            .find_map(|(index, entry)| {
+                if entry.field().starts_with("ext_allocator_malloc") {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .ok_or("No malloc function in table section")?;
+
         // Extract the `${function_name}` function_body
         let function_body = self
             .code_section_mut()
@@ -70,7 +85,7 @@ impl FunctionMapper for Module {
             ))?;
 
         // Map over the function_body
-        body_mapper(function_body, global_function_index);
+        body_mapper(function_body, malloc_index);
 
         Ok(())
     }
