@@ -9,9 +9,15 @@ use wasm_instrument::parity_wasm::serialize;
 use wasm_instrument::parity_wasm::{deserialize_buffer, elements::Module};
 
 pub fn save(path: &Path, bytes: &[u8]) -> Result<(), String> {
+    // Recursively create parent directories if needed
+    if let Some(prefix) = path.parent() {
+        std::fs::create_dir_all(prefix).map_err(|err| format!("Could not create dir: {}", err))?;
+    }
+
     OpenOptions::new()
         .create(true)
         .write(true)
+        .truncate(true)
         .open(path)
         .map(|mut file| {
             file.write_all(bytes).expect("Could not write to file");

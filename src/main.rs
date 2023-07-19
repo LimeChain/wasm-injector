@@ -50,20 +50,8 @@ fn main() -> Result<(), String> {
     };
 
     let destination = match destination {
-        // Destination is a directory:
-        // use the source filename and surround it with the appropriate modifiers
-        Some(destination_directory) if destination_directory.is_dir() => destination_directory
-            .join(calculate_default_destination_file_name(get_file_name(
-                source.as_path(),
-            )?)),
-
-        // Destination is a file:
-        // use directly
-        Some(destination_file) if destination_file.is_file() => destination_file,
-
-        // Destination is something else:
-        // error out
-        Some(_) => panic!("Destination should either be a directory or a file"),
+        // Creates a new file with the destination as name
+        Some(destination_file) => destination_file,
 
         // There is no destination:
         // put it next to the source, surrounding it with the appropriate modifiers
