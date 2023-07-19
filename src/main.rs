@@ -1,9 +1,7 @@
 use clap::{Parser, ValueHint};
 use std::path::PathBuf;
 use wasm_injector::injecting::injections::Injection;
-use wasm_injector::util::{
-    get_file_name, load_module_from_wasm, modify_file_name, save_module_to_wasm,
-};
+use wasm_injector::util::{load_module_from_wasm, modify_file_name, save_module_to_wasm};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

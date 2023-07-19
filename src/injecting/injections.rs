@@ -1,5 +1,5 @@
 use wasm_instrument::parity_wasm::elements::{
-    BlockType, FuncBody, Instruction, Instructions, Local, Module, ValueType,
+    BlockType, FuncBody, Instruction, Instructions, Module,
 };
 
 use super::injector::FunctionMapper;

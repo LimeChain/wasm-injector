@@ -58,11 +58,10 @@ impl FunctionMapper for Module {
         // the number of imported functions from the global function index
         let local_function_index = global_function_index - import_section_len;
 
-
-        let table_section = self.import_section_mut().ok_or("No table section")?;
-        let malloc_index = table_section
-            .entries_mut()
-            .iter_mut()
+        let import_section = self.import_section_mut().ok_or("No table section")?;
+        let malloc_index = import_section
+            .entries()
+            .iter()
             .enumerate()
             .find_map(|(index, entry)| {
                 if entry.field().starts_with("ext_allocator_malloc") {
