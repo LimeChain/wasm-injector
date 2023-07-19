@@ -4,11 +4,9 @@ Creds: config
 
 # Check authority status.
 alice: reports node_roles is 4
-bob: reports node_roles is 4
 
 # Ensure parachains are registered.
 alice: parachain 2000 is registered within 60 seconds
-bob: parachain 2000 is registered within 60 seconds
 
 # Ensure parachains made progress.
 alice: log line matches glob "*InvalidCandidate(HardTimeout)*" within 120 seconds

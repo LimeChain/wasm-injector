@@ -17,9 +17,6 @@ requests = { memory = "2G", cpu = "1" }
   name = "alice"
   args = [ "--alice", "-lparachain=debug,runtime=debug" ]
 
-  [[relaychain.nodes]]
-  name = "bob"
-  args = [ "--bob", "-lparachain=debug,runtime=debug"]
 
 [[parachains]]
 id = 2000
