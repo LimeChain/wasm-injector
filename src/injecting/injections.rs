@@ -61,27 +61,19 @@ fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
 }
 
 fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
-    module.map_function(
-        "validate_block",
-        |func_body: &mut FuncBody, function_index| {
-            let code = func_body.code_mut();
-            let elements = code.elements_mut();
+    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
+        let code = func_body.code_mut();
 
-            // Create and instruction validate_block to call itself recursively
-            let mut function_call = vec![
-                // Set the arguments for the function call
-                Instruction::I32Const(1),
-                Instruction::I32Const(1),
-                // Call validate_block recursively
-                Instruction::Call(function_index as u32),
-            ];
+        let mut code_with_allocation = vec![
+            Instruction::GetLocal(2),
+            Instruction::I32Const(2147483647),
+            Instruction::I32Store(2, 81000000),
+        ];
 
-            // Prepend the function call to the existing code
-            function_call.append(elements);
+        code_with_allocation.append(code.elements_mut());
 
-            *code.elements_mut() = function_call;
-        },
-    )
+        *code.elements_mut() = code_with_allocation;
+    })
 }
 
 fn inject_noops(module: &mut Module) -> Result<(), String> {
@@ -97,19 +89,21 @@ fn inject_noops(module: &mut Module) -> Result<(), String> {
 }
 
 fn inject_heap_overflow(module: &mut Module) -> Result<(), String> {
-    module.map_function("validate_block", |func_body: &mut FuncBody, _| {
-        let code = func_body.code_mut();
+    module.map_function(
+        "validate_block",
+        |func_body: &mut FuncBody, malloc_index| {
+            let code = func_body.code_mut();
+            let index: u32 = malloc_index as u32;
 
-        let mut code_with_allocation = vec![
-            // Try to allocate 255 pages
-            Instruction::Block(BlockType::NoResult),
-            Instruction::I32Const(i32::MAX),
-            Instruction::GrowMemory(0),
-            Instruction::Drop,
-            Instruction::End,
-        ];
-        code_with_allocation.append(code.elements_mut());
+            let mut code_with_allocation =
+                vec![[Instruction::I32Const(33_554_431), Instruction::Call(index)]; 8]
+                    .into_iter()
+                    .flatten()
+                    .collect::<Vec<Instruction>>();
 
-        *code.elements_mut() = code_with_allocation;
-    })
+            code_with_allocation.append(code.elements_mut());
+
+            *code.elements_mut() = code_with_allocation;
+        },
+    )
 }

@@ -15,7 +15,11 @@ requests = { memory = "2G", cpu = "1" }
   [[relaychain.nodes]]
   name = "alice"
   args = [ "--alice", "-lparachain=debug,runtime=debug" ]
-
+  
+  [[relaychain.nodes]]
+  name = "bob"
+  args = [ "--bob", "-lparachain=debug,runtime=debug"]
+  
 [[parachains]]
 id = 2000
 genesis_wasm_path="./wasm/PATCHED_rococo_v9420.wasm.hex"
