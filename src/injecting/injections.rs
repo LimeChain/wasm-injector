@@ -107,3 +107,110 @@ fn inject_heap_overflow(module: &mut Module) -> Result<(), String> {
         },
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::util::load_module_from_wasm;
+    use std::path::Path;
+
+    const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test-wasm/test.wasm");
+
+    fn get_function_body(module: &mut Module) -> &mut FuncBody {
+        let function_name = "validate_block";
+        let global_function_index = module.get_global_function_index(function_name).unwrap();
+        let import_section_len = module.get_import_section_len().unwrap();
+        let local_function_index = global_function_index - import_section_len;
+        let function_body = module
+            .get_function_body(local_function_index, function_name)
+            .unwrap();
+
+        function_body
+    }
+
+    fn load_module() -> Module{     
+        let module_path = Path::new(WASM_PATH);
+        let module = load_module_from_wasm(module_path).unwrap();
+        module
+    }
+
+    #[test]
+    fn test_inject_infinite_loop() {
+        let mut module = load_module();
+
+        let injection = Injection::InfiniteLoop;
+        assert!(injection.inject(&mut module).is_ok());
+
+        let function_body = get_function_body(&mut module);
+
+        let expected = vec![
+            Instruction::Loop(BlockType::NoResult),
+            Instruction::Nop,
+            Instruction::Br(0),
+            Instruction::End,
+        ];
+        assert!(function_body.code_mut().elements().starts_with(&expected))
+    }
+
+    #[test]
+    fn test_inject_jibberish_return_value() {
+        let mut module = load_module();
+        let injection = Injection::JibberishReturnValue;
+
+        assert!(injection.inject(&mut module).is_ok());
+
+        let function_body = get_function_body(&mut module);
+
+        let expected = vec![Instruction::I64Const(123456789), Instruction::End];
+        assert!(function_body.code_mut().elements().starts_with(&expected))
+    }
+
+    #[test]
+    fn test_inject_stack_overflow() {
+        let mut module = load_module();
+
+        let injection = Injection::StackOverflow;
+        assert!(injection.inject(&mut module).is_ok());
+
+        let function_body = get_function_body(&mut module);
+
+        let expected = vec![
+            Instruction::GetLocal(2),
+            Instruction::I32Const(2147483647),
+            Instruction::I32Store(2, 81000000),
+        ];
+        assert!(function_body.code_mut().elements().starts_with(&expected))
+    }
+
+    #[test]
+    fn test_inject_noops() {
+        let mut module = load_module();
+
+        let injection = Injection::Noops;
+        assert!(injection.inject(&mut module).is_ok());
+
+        let function_body = get_function_body(&mut module);
+
+        let expected = vec![Instruction::Nop; 50]; // 500_000_000 is the actual number of injected instructions
+        assert!(function_body.code_mut().elements().starts_with(&expected))
+    }
+
+    #[test]
+    fn test_inject_heap_overflow() {
+        let mut module = load_module();
+
+        let injection = Injection::HeapOverflow;
+        assert!(injection.inject(&mut module).is_ok());
+
+        let index = module.get_malloc_index().unwrap() as u32;
+        let function_body = get_function_body(&mut module);
+
+        let expected = vec![Instruction::I32Const(33_554_431), Instruction::Call(index)]
+            .into_iter()
+            .cycle()
+            .take(16)
+            .collect::<Vec<_>>();
+
+        assert!(function_body.code_mut().elements().starts_with(&expected))
+    }
+}
