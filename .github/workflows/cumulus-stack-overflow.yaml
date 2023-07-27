@@ -51,13 +51,12 @@ jobs:
           command: build
 
       - name: Move test.wasm
-
         run: |
           find . -type f -regextype posix-extended -regex '.*/rococo-parachain_runtime.*wasm' -exec bash -c 'mv "$0" ./target/debug/test.wasm' {} \;
 
       - name: Run wasm_injector
         run: |
-          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm --hexify
+          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm --hexified
  
       - name: Checkout zombienet repository
         uses: actions/checkout@v2
