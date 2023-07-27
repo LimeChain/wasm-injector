@@ -1,0 +1,140 @@
+name: Daily Workflow
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * *'
+  push:
+    branches:
+      - feat/cicd
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+    
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: paritytech/cumulus  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+          prefix: 'v'
+        id: cumulus-binary-release-tag  # The step ID to refer to later.
+  
+      - run: echo "Cumulus binary is at version ${{ steps.cumulus-binary-release-tag.outputs.tag }}"
+
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: paritytech/cumulus  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+          prefix: 'parachains'
+        id: cumulus-wasm-release-tag  # The step ID to refer to later.
+
+      - run: echo "Cumulus WASM is at version ${{ steps.cumulus-wasm-release-tag.outputs.tag }}"
+
+      - name: Fetch Github Release Asset from polkadot
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/polkadot"
+          file: "polkadot"
+          target: "polkadot"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from polkadot-parachain
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/cumulus"
+          file: "polkadot-parachain"
+          target: "polkadot-parachain"
+          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from zombienet
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/zombienet"
+          file: "zombienet-linux-x64"
+          target: "zombienet"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from cumulus
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/cumulus"
+          file: "rococo-parachain_runtime(.*)wasm"
+          version: "tags/${{steps.cumulus-wasm-release-tag.outputs.tag}}"
+          target: "./"
+          regex: true
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - run: find . -type f -regex '.*/rococo-parachain_runtime.*wasm' -exec mv {} fetched.wasm \;
+
+      - name: Fetch kagome
+        run: |
+          docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest sh -c  "cp /usr/local/bin/kagome . && chmod +x kagome"
+         
+      - run : |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends software-properties-common curl gpg gpg-agent wget
+          curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb http://deb.debian.org/debian/ experimental main" | sudo tee -a /etc/apt/sources.list.d/docker.list > /dev/null
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 0E98404D386FA1D9
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6ED0E7B82643E131
+          sudo add-apt-repository -y "deb http://deb.debian.org/debian/ testing main"
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libstdc++6 libc6 libnsl2
+
+      - name: Debugging
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List files:"
+          ls -la
+          echo "GLIBC version:"
+          ldd --version
+          echo "GITHUB_WORKSPACE value:"
+          echo "$GITHUB_WORKSPACE"
+
+      - name: Add binaries to PATH
+        run: |
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
+          chmod +x polkadot
+          chmod +x polkadot-parachain
+          chmod +x zombienet
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+      
+      - run: mv fetched.wasm ./target/debug/test.wasm
+
+      - name: Run wasm_injector
+        run: |
+          ./target/debug/wasm_injector nothing ./target/debug/test.wasm ./wasm/orig.wasm.hex --hexified
+          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm ./wasm/stack-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector heap-overflow ./target/debug/test.wasm ./wasm/heap-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
+
+      - name: Set up Julia
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.9.1'
+    
+      - name: Run Julia script
+        run: julia scripts/runTests.jl
+
+      - uses: actions/cache@v3
+        if: always()
+        with:
+          path: |
+            ./tests_output
+          key: test-output-${{github.run_number}}
