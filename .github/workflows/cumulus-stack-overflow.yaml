@@ -23,12 +23,22 @@ jobs:
           target: "polkadot"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: paritytech/cumulus  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+          prefix: 
+        id: cumulus-release-tag  # The step ID to refer to later.
+    
+      - run: echo "Cumulus is at version ${{ steps.cumulus-release-tag.outputs.tag }}"
+
       - name: Fetch Github Release Asset from polkadot-parachain
         uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: "paritytech/cumulus"
           file: "polkadot-parachain"
           target: "polkadot-parachain"
+          version: ${{ steps.cumulus-release-tag.outputs.tag }}
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Add binaries to PATH
