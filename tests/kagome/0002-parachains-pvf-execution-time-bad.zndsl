@@ -1,0 +1,27 @@
+Description: PVF compilation time
+Network: ./0002-parachains-pvf-execution-time-bad.toml
+Creds: config
+
+# Check authority status.
+alice: reports kagome_node_roles is 4
+
+# Ensure parachains are registered.
+alice: parachain 2000 is registered within 60 seconds
+
+# Ensure parachains made progress.
+alice: parachain 2000 block height != 1 within 60 seconds
+
+# Check execution time.
+# There are two different timeout conditions: BACKING_EXECUTION_TIMEOUT(2s) and
+# APPROVAL_EXECUTION_TIMEOUT(6s). Currently these are not differentiated by metrics
+# because the metrics are defined in `polkadot-node-core-pvf` which is a level below
+# the relevant subsystems.
+# That being said, we will take the simplifying assumption of testing only the
+# 2s timeout.
+
+# We do this check by ensuring all executions fall into bucket le="2" or lower.
+# First, check if we have at least 1 sample, but we should have many more.
+alice: reports histogram kagome_block_verification_and_import_time_bucket has at least 0 samples in buckets ["0.005", "0.01", "0.025", "0.05", "0.1", "0.25", "0.5", "1", "2.5"] within 60 seconds
+
+# Check if we have no samples > 2s.
+alice: reports histogram kagome_block_verification_and_import_time_bucket has at least 0 samples in buckets ["1", "2.5", "5", "10", "+Inf"] within 60 seconds
