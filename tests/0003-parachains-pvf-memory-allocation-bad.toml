@@ -22,7 +22,7 @@ requests = { memory = "2G", cpu = "1" }
   
 [[parachains]]
 id = 2000
-genesis_wasm_path="./target/debug/hexified_injected_test.wasm.hex"
+genesis_wasm_path="./wasm/heap-overflow.wasm.hex"
 
   [parachains.collator]
   name = "collator01"

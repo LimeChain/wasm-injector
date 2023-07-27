@@ -42,7 +42,7 @@ for host::String in hosts
                 test_name::String = match_captures[2]
 
                 # Prepare the `zombienet test` command
-                command::Cmd = `zombienet -p native test $(joinpath(tests_dir, test))`
+                command::Cmd = `node zombienet/javascript/packages/cli/dist/cli.js --provider native test $(joinpath(tests_dir, test))`
                 println("Running test [$(host)] $(test_name)")
 
                 # Try to run the test

@@ -85,7 +85,11 @@ jobs:
 
       - name: Run wasm_injector
         run: |
-          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm --hexified
+          ./target/debug/wasm_injector nothing ./target/debug/test.wasm ./wasm/orig.wasm.hex --hexified
+          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm ./wasm/stack-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector heap-overflow ./target/debug/test.wasm ./wasm/heap-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
+          ./target/debug/wasm_injector noops ./target/debug/test.wasm ./wasm/noops.wasm.hex --hexified
  
       - name: Checkout zombienet repository
         uses: actions/checkout@v2
@@ -110,7 +114,7 @@ jobs:
           version: '1.6.x'
     
       - name: Run Julia script
-        run: julia /scripts/runTests.jl
+        run: julia scripts/runTests.jl
       # - name: Spawn zombienet and run test after 60 seconds wait for spawn to complete
       #   run: | 
       #     node zombienet/javascript/packages/cli/dist/cli.js --provider native spawn tests/0003-parachains-pvf-memory-allocation-bad.toml &
