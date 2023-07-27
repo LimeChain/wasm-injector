@@ -35,7 +35,6 @@ jobs:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
           regex: true
-          target: "test.wasm"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 
@@ -49,14 +48,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release
 
       - name: Move test.wasm
 
         run: |
           ls
           pwd
-          mv test.wasm target/release/test.wasm
+          find . -type f -regextype posix-extended -regex '.*/rococo-parachain_runtime.*wasm' -exec bash -c 'mv "$0" ./target/debug/test.wasm' {} \;
 
       - name: Run wasm_injector
         run: |
