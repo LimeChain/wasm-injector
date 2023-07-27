@@ -35,7 +35,7 @@ jobs:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
           regex: true
-          target: "./test.wasm"
+          target: "test.wasm"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 
@@ -52,7 +52,11 @@ jobs:
           args: --release
 
       - name: Move test.wasm
-        run: mv test.wasm ../target/release/test.wasm
+
+        run: |
+          ls
+          pwd
+          mv test.wasm target/release/test.wasm
 
       - name: Run wasm_injector
         run: |
