@@ -1,0 +1,112 @@
+name: Daily Workflow
+
+on:
+  schedule:
+    - cron:  '0 0 * * *'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get latest polkadot release info
+        id: latestrelease_polkadot
+        uses: abatilo/release-info-action@v2.0.0
+        with:
+          owner: paritytech
+          repo: polkadot
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from polkadot
+        uses: dsaltares/fetch-gh-release-asset@v0.0.5
+        with:
+          repo: "paritytech/polkadot"
+          version: "tags/${{ steps.latestrelease_polkadot.outputs.tag_name }}"
+          file: "${{ steps.latestrelease_polkadot.outputs.assets[0].name }}"
+          target: "polkadot.bin"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Get latest polkadot-parachains release info
+        id: latestrelease_parachains
+        uses: abatilo/release-info-action@v2.0.0
+        with:
+          owner: paritytech
+          repo: polkadot-parachains
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from polkadot-parachains
+        uses: dsaltares/fetch-gh-release-asset@v0.0.5
+        with:
+          repo: "paritytech/polkadot-parachains"
+          version: "tags/${{ steps.latestrelease_parachains.outputs.tag_name }}"
+          file: "${{ steps.latestrelease_parachains.outputs.assets[0].name }}"
+          target: "polkadot-parachains.bin"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Add binaries to PATH
+        run: |
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
+          chmod +x polkadot.bin
+          chmod +x polkadot-parachains.bin
+
+      - name: Get latest cumulus release info
+        id: latestrelease_cumulus
+        uses: abatilo/release-info-action@v2.0.0
+        with:
+          owner: paritytech
+          repo: cumulus
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Fetch Github Release Asset from cumulus
+        uses: dsaltares/fetch-gh-release-asset@v0.0.5
+        with:
+          repo: "paritytech/cumulus"
+          version: "tags/${{ steps.latestrelease_cumulus.outputs.tag_name }}"
+          file: "${{ steps.latestrelease_cumulus.outputs.assets[0].name }}"
+          target: "test.wasm"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Move test.wasm
+        run: mv test.wasm ../target/release/test.wasm
+
+      - name: Run wasm_injector
+        run: |
+          cd ../target/release
+          ./wasm_injector stack-overflow test.wasm
+ 
+      - name: Checkout zombienet repository
+        uses: actions/checkout@v2
+        with:
+          repository: paritytech/zombienet
+          path: ./zombienet
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install and build zombienet
+        run: |
+          cd ./zombienet
+          npm install
+          npm run build
+
+      - name: Run zombienet
+        run: |
+          zombienet -p native test ../tests/0003-parachains-pvf-memory-allocation-bad.zndsl
