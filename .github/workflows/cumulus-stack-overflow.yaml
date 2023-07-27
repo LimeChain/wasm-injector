@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: paritytech/zombienet
-          path: ./zombienet
+          path: zombienet
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -74,7 +74,7 @@ jobs:
 
       - name: Install and build zombienet
         run: |
-          cd ./zombienet
+          cd zombienet
           npm install
           npm run build
 
