@@ -34,6 +34,7 @@ jobs:
         with:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
+          target: "./"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
@@ -58,8 +59,7 @@ jobs:
 
       - name: Run wasm_injector
         run: |
-          cd ../target/release
-          ./wasm_injector stack-overflow test.wasm
+          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm
  
       - name: Checkout zombienet repository
         uses: actions/checkout@v2
