@@ -58,8 +58,8 @@ jobs:
         with:
           repo: "paritytech/cumulus"
           version: "tags/${{ steps.latestrelease_cumulus.outputs.latest_tag }}"
-          file: "${{ steps.latestrelease_cumulus_asset_name.outputs.asset_name }}"
-          target: "test.wasm"
+          file: "$rococo-parachain_runtime-*.wasm"
+          target: "./test.wasm"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 
