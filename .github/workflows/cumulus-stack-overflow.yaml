@@ -53,13 +53,11 @@ jobs:
       - name: Move test.wasm
 
         run: |
-          ls
-          pwd
           find . -type f -regextype posix-extended -regex '.*/rococo-parachain_runtime.*wasm' -exec bash -c 'mv "$0" ./target/debug/test.wasm' {} \;
 
       - name: Run wasm_injector
         run: |
-          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm
+          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm --hexify
  
       - name: Checkout zombienet repository
         uses: actions/checkout@v2
@@ -74,7 +72,7 @@ jobs:
 
       - name: Install and build zombienet
         run: |
-          cd zombienet
+          cd zombienet/javascript
           npm install
           npm run build
 
