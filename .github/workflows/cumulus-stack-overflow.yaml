@@ -24,7 +24,7 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Fetch Github Release Asset from polkadot
-        uses: dsaltares/fetch-gh-release-asset@vmaster
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: "paritytech/polkadot"
           version: "tags/${{ steps.latestrelease_polkadot.outputs.tag_name }}"
@@ -41,7 +41,7 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Fetch Github Release Asset from polkadot-parachains
-        uses: dsaltares/fetch-gh-release-asset@vmaster
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: "paritytech/polkadot-parachains"
           version: "tags/${{ steps.latestrelease_parachains.outputs.tag_name }}"
@@ -64,7 +64,7 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Fetch Github Release Asset from cumulus
-        uses: dsaltares/fetch-gh-release-asset@vmaster
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
           repo: "paritytech/cumulus"
           version: "tags/${{ steps.latestrelease_cumulus.outputs.tag_name }}"
