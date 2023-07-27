@@ -77,5 +77,6 @@ jobs:
 
       - name: Run zombienet
         run: |
-          zombienet -p native spawn ../tests/0003-parachains-pvf-memory-allocation-bad.toml
-          zombienet -p native test ../tests/0003-parachains-pvf-memory-allocation-bad.zndsl
+          ls
+          node dist/cli.js -p native spawn ../../tests/0003-parachains-pvf-memory-allocation-bad.toml
+          node dist/cli.js -p native test ../../tests/0003-parachains-pvf-memory-allocation-bad.zndsl
