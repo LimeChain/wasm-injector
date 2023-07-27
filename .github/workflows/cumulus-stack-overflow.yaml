@@ -38,7 +38,7 @@ jobs:
           repo: "paritytech/cumulus"
           file: "polkadot-parachain"
           target: "polkadot-parachain"
-          version: "tags/${{ steps.cumulus-release-tag.outputs.tag }}"
+          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Add binaries to PATH
