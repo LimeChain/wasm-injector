@@ -69,14 +69,10 @@ jobs:
         with:
           node-version: 'latest'
 
-      - name: Install and build zombienet
+      - name: Run zombienet
         run: |
           cd zombienet/javascript
           npm install
           npm run build
-
-      - name: Run zombienet
-        run: |
-          ls
-          node zombienet/javascript/dist/cli.js -p native spawn tests/0003-parachains-pvf-memory-allocation-bad.toml
-          node zombienet/javascript/dist/cli.js -p native test tests/0003-parachains-pvf-memory-allocation-bad.zndsl
+          npm run zombie -p native spawn ../../tests/0003-parachains-pvf-memory-allocation-bad.toml
+          npm run zombie -p native test tests/0003-parachains-pvf-memory-allocation-bad.zndsl
