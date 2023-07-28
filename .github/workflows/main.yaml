@@ -91,22 +91,13 @@ jobs:
           ./target/debug/wasm_injector infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
           ./target/debug/wasm_injector noops ./target/debug/test.wasm ./wasm/noops.wasm.hex --hexified
  
-      - name: Checkout zombienet repository
-        uses: actions/checkout@v2
+      - name: Fetch zombienet release
+        uses: dsaltares/fetch-gh-release-asset@master
         with:
-          repository: paritytech/zombienet
-          path: zombienet
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 'latest'
-
-      - name: Build and install zombienet
-        run: |
-          cd zombienet/javascript
-          npm install
-          npm run build
+          repo: "paritytech/zombienet"
+          file: "zombienet-linux-x64"
+          target: "zombienet"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Set up Julia
         uses: julia-actions/setup-julia@v1
