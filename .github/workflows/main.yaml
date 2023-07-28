@@ -96,7 +96,6 @@ jobs:
         with:
           repo: "paritytech/zombienet"
           file: "zombienet-linux-x64"
-          target: "zombienet"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Set up Julia
