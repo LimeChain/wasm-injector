@@ -43,6 +43,7 @@ for host::String in hosts
                     # Add the test name to the passed tests array
                     push!(passed_tests, full_test_name)
                 catch e
+                    showerror(stdout, e)
                     # Add the test name to the failed tests array
                     push!(failed_tests, full_test_name)
                 end
