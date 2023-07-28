@@ -111,7 +111,7 @@ jobs:
       - name: Set up Julia
         uses: julia-actions/setup-julia@v1
         with:
-          version: '1.6.x'
+          version: '1.9.1'
     
       - name: Run Julia script
         run: julia scripts/runTests.jl
