@@ -37,9 +37,8 @@ for host::String in hosts
 
                 # Try to run the test
                 try
-                    # Try to run the command and capture its output
-                    (st, pr) = readsfrom(run(command))
-                    readlines(st)
+                    # Try to run the command
+                    run(command)
 
                     # Add the test name to the passed tests array
                     push!(passed_tests, full_test_name)
