@@ -46,11 +46,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache/save@v3
-        if: always()
+        uses: actions/cache@v3
         with:
           path: latest_release_polkadot.txt
           key: latest_release_polkadot.txt
+          restore-keys: |
+            latest_release_polkadot.txt
          
   check-cumulus:
     runs-on: ubuntu-latest
@@ -91,11 +92,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache/save@v3
-        if: always()
+        uses: actions/cache@v3
         with:
           path: latest_release_cumulus.txt
           key: latest_release_cumulus.txt
+          restore-keys: |
+            latest_release_cumulus.txt
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -136,11 +138,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache/save@v3
-        if: always()
+        uses: actions/cache@v3
         with:
           path: latest_release_cumulus_wasm.txt
-          key: latest_release_cumulus_wasm.txt
+          key: latest_release_cumulus_wasm.txt-${{github.run_number}}
+          restore-keys: |
+            latest_release_cumulus_wasm.txt
 
 
 
@@ -180,11 +183,13 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache/save@v3
+        uses: actions/cache@v3
         if: always()
         with:
           path: latest_release_zombienet.txt
-          key: latest_release_zombienet.txt
+          key: latest_release_zombienet.txt-${{github.run_number}}
+          restore-keys: |
+            latest_release_zombienet.txt
 
 
 
@@ -202,11 +207,13 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache/save@v3
+        uses: actions/cache@v3
         if: always()
         with:
           path: zombienet
-          key: zombienet
+          key: zombienet-${{github.run_number}}
+          restore-keys: |
+            zombienet-
   
 
   fetch-polkadot-binary:
@@ -223,11 +230,13 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache/save@v3
+        uses: actions/cache@v3
         if: always()
         with:
           path: polkadot
-          key: polkadot
+          key: polkadot-${{github.run_number}}
+          restore-keys: |
+            polkadot-
 
 
   fetch-cumulus-binary:
@@ -245,11 +254,12 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache/save@v3
-        if: always()
+        uses: actions/cache@v3
         with:
           path: polkadot-parachain
-          key: polkadot-parachain
+          key: polkadot-parachain-${{github.run_number}}
+          restore-keys: |
+            polkadot-parachain-
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -276,11 +286,12 @@ jobs:
           ls -la
 
       - name: update cache
-        uses: actions/cache/save@v3
-        if: always()
+        uses: actions/cache@v3
         with:
           path: fetched.wasm
-          key: fetched.wasm
+          key: fetched.wasm-${{github.run_number}}
+          restore-keys: |
+            fetched.wasm-
 
   run-tests:
     runs-on: ubuntu-latest
