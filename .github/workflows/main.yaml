@@ -187,6 +187,13 @@ jobs:
           target: "zombienet"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: zombienet
+          key: zombienet
+  
+
   fetch-polkadot-binary:
     runs-on: ubuntu-latest
     needs: check-polkadot
@@ -199,6 +206,12 @@ jobs:
           file: "polkadot"
           target: "polkadot"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: polkadot
+          key: polkadot
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -214,6 +227,12 @@ jobs:
           version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: polkadot-parachain
+          key: polkadot-parachain
+
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
     needs: check-cumulus-wasm
@@ -225,9 +244,15 @@ jobs:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
           version: "tags/${{steps.cumulus-wasm-release-tag.outputs.tag}}"
-          target: "./"
+          target: "./fetched.wasm"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: fetched.wasm
+          key: fetched.wasm
 
   fetch-kagome-binary:
     runs-on: ubuntu-latest
@@ -272,10 +297,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-
-      - name: Move test.wasm
-        run: |
-          find . -type f -regextype posix-extended -regex '.*/rococo-parachain_runtime.*wasm' -exec bash -c 'mv "$0" ./target/debug/test.wasm' {} \;
+      
+      - run: mv fetched.wasm ./target/debug/test.wasm'
 
       - name: Run wasm_injector
         run: |
