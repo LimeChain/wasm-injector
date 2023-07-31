@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: latest_release_polkadot.txt
-          key: latest_release_polkadot.txt
+          key: ${{ runner.os }}-latest_release_polkadot-${{ hashFiles('**/lockfiles') }}
 
   check-cumulus:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: latest_release_cumulus.txt
-          key: latest_release_cumulus.txt
+          key: ${{ runner.os }}-latest-release-cumulus-${{ hashFiles('**/lockfiles') }}
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -110,38 +110,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: latest_release_cumulus_wasm.txt
-          key: latest_release_cumulus_wasm.txt
-
-  check-kagome:
-    runs-on: ubuntu-latest
-    outputs:
-      new_release: ${{ steps.set.outputs.new_release }}
-    steps:
-      - uses: oprypin/find-latest-tag@v1
-        with:
-          repository: soramitsu/kagome  # The repository to scan.
-          releases-only: true  # We know that all relevant tags have a GitHub release for them.
-        id: kagome-release-tag  # The step ID to refer to later.
-
-      - name: Compare with cached release
-        id: set
-        run: |
-          if [ -f latest_release_kagome.txt ]; then
-            CACHED_RELEASE=$(cat latest_release_kagome.txt)
-          else
-            CACHED_RELEASE=""
-          fi
-          
-          if [ "${{ steps.kagome-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
-            echo "${{ steps.kagome-release-tag.outputs.tag }}" > latest_release_kagome.txt
-            echo "new_release=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Cache latest release
-        uses: actions/cache@v3
-        with:
-          path: latest_release_kagome.txt
-          key: latest_release_kagome.txt
+          key: ${{ runner.os }}-latest-release-cumulus-wasm-${{ hashFiles('**/lockfiles') }}
 
   check-zombienet:
     runs-on: ubuntu-latest
@@ -173,7 +142,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: latest_release_zombienet.txt
-          key: latest_release_zombienet.txt
+          key: ${{ runner.os }}-latest-release-zombienet-${{ hashFiles('**/lockfiles') }}
 
 
   fetch-zombienet:
@@ -193,7 +162,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: zombienet
-          key: zombienet
+          key: ${{ runner.os }}-zombienet-${{ hashFiles('**/lockfiles') }}
   
 
   fetch-polkadot-binary:
@@ -213,7 +182,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: polkadot
-          key: polkadot
+          key: ${{ runner.os }}-polkadot-${{ hashFiles('**/lockfiles') }}
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -233,7 +202,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: polkadot-parachain
-          key: polkadot-parachain
+          key: ${{ runner.os }}-polkadot-parachain-${{ hashFiles('**/lockfiles') }}
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -254,7 +223,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: fetched.wasm
-          key: fetched.wasm
+          key: ${{ runner.os }}-fetched-${{ hashFiles('**/lockfiles') }}
 
   run-tests:
     runs-on: ubuntu-latest
