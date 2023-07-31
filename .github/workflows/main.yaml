@@ -12,9 +12,6 @@ jobs:
   check-polkadot:
     runs-on: ubuntu-latest
     steps:
-      # - name: Checkout
-      #   uses: actions/checkout@v2
-
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/polkadot  # The repository to scan.
@@ -252,6 +249,7 @@ jobs:
           echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
           chmod +x polkadot
           chmod +x polkadot-parachain
+          chmod +x zombienet
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
@@ -283,10 +281,3 @@ jobs:
     
       - name: Run Julia script
         run: julia scripts/runTests.jl
-      # - name: Spawn zombienet and run test after 60 seconds wait for spawn to complete
-      #   run: | 
-      #     node zombienet/javascript/packages/cli/dist/cli.js --provider native spawn tests/0003-parachains-pvf-memory-allocation-bad.toml &
-      #     sleep 60
-      #     node zombienet/javascript/packages/cli/dist/cli.js --provider native test tests/0003-parachains-pvf-memory-allocation-bad.zndsl
-          
-
