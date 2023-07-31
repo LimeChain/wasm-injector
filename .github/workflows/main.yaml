@@ -56,7 +56,7 @@ jobs:
       tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
     steps:
       - name: Download new release flag
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: latest_release_cumulus.txt
           path: .
@@ -98,7 +98,7 @@ jobs:
       tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     steps:
       - name: Download new release flag
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: latest_release_cumulus_wasm.txt
           path: .
@@ -140,12 +140,12 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - name: Download new release flag
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: latest_release_zombienet.txt
           path: .
         continue-on-error: true
-        
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/zombienet  # The repository to scan.
@@ -259,6 +259,9 @@ jobs:
     needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-zombienet]
     if: always() 
     steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
       - name: Debugging
         run: |
           echo "Current directory:"
@@ -267,6 +270,8 @@ jobs:
           ls -la
           echo "GITHUB_WORKSPACE value:"
           echo "$GITHUB_WORKSPACE"
+
+
       - name: Add binaries to PATH
         run: |
           echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
