@@ -15,10 +15,11 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - name: Download new release flag
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: latest_release_polkadot.txt
           path: .
+        continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -59,6 +60,8 @@ jobs:
         with:
           name: latest_release_cumulus.txt
           path: .
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -99,6 +102,8 @@ jobs:
         with:
           name: latest_release_cumulus_wasm.txt
           path: .
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -139,6 +144,8 @@ jobs:
         with:
           name: latest_release_zombienet.txt
           path: .
+        continue-on-error: true
+        
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/zombienet  # The repository to scan.
