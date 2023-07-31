@@ -9,53 +9,72 @@ on:
       - feat/cicd
 
 jobs:
-  build:
+  check-polkadot:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      # - name: Checkout
+      #   uses: actions/checkout@v2
 
-      - name: Fetch Github Release Asset from polkadot
-        uses: dsaltares/fetch-gh-release-asset@master
+      - uses: oprypin/find-latest-tag@v1
         with:
-          repo: "paritytech/polkadot"
-          file: "polkadot"
-          target: "polkadot"
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          repository: paritytech/polkadot  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+        id: polkadot-binary-release-tag  # The step ID to refer to later.
 
+      - run: echo "Polkadot binary is at version ${{ steps.polkadot-binary-release-tag.outputs.tag }}"
+
+      - name: Compare polkadot binary with cached release
+        run: |
+          if [ -f latest_release_polkadot.txt ]; then
+            CACHED_RELEASE=$(cat latest_release_polkadot.txt)
+          else
+            CACHED_RELEASE=""
+          fi
+          
+          if [ "${{ steps.polkadot-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
+            echo "${{ steps.polkadot-binary-release-tag.outputs.tag }}" > latest_release_polkadot.txt
+            echo "NEW_POLKADOT_RELEASE=true" >> $GITHUB_ENV
+          fi
+
+      - name: Cache latest Polkadot binary release tag
+        uses: actions/cache@v3
+        with:
+          path: latest_release_polkadot.txt
+          key: ${{ steps.polkadot-binary-release-tag.outputs.tag }}
+  check-cumulus:
+    runs-on: ubuntu-latest
+    steps:
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
           releases-only: true  # We know that all relevant tags have a GitHub release for them.
           prefix: 'v'
         id: cumulus-binary-release-tag  # The step ID to refer to later.
-    
+  
       - run: echo "Cumulus binary is at version ${{ steps.cumulus-binary-release-tag.outputs.tag }}"
-
-      - name: Fetch Github Release Asset from polkadot-parachain
-        uses: dsaltares/fetch-gh-release-asset@master
-        with:
-          repo: "paritytech/cumulus"
-          file: "polkadot-parachain"
-          target: "polkadot-parachain"
-          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Fetch Github Release Asset from zombienet
-        uses: dsaltares/fetch-gh-release-asset@master
-        with:
-          repo: "paritytech/zombienet"
-          file: "zombienet-linux-x64"
-          target: "zombienet"
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Add binaries to PATH
+      
+      - name: Compare cumulus binary with cached release
         run: |
-          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
-          chmod +x polkadot
-          chmod +x polkadot-parachain
-          chmod +x zombienet
+          if [ -f latest_release_cumulus.txt ]; then
+            CACHED_RELEASE=$(cat latest_release_cumulus.txt)
+          else
+            CACHED_RELEASE=""
+          fi
+          
+          if [ "${{ steps.cumulus-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
+            echo "${{ steps.cumulus-binary-release-tag.outputs.tag }}" > latest_release_cumulus.txt
+            echo "NEW_CUMULUS_RELEASE=true" >> $GITHUB_ENV
+          fi
 
+      - name: Cache latest Cumulus binary release tag
+        uses: actions/cache@v3
+        with:
+          path: latest_release_cumulus.txt
+          key: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
+
+  check-cumulus-wasm:
+    runs-on: ubuntu-latest
+    steps:
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -64,7 +83,133 @@ jobs:
         id: cumulus-wasm-release-tag  # The step ID to refer to later.
 
       - run: echo "Cumulus WASM is at version ${{ steps.cumulus-wasm-release-tag.outputs.tag }}"
+      - name: Compare cumulus binary with cached release
+        run: |
+          if [ -f latest_release_cumulus_wasm.txt ]; then
+            CACHED_RELEASE=$(cat latest_release_cumulus_wasm.txt)
+          else
+            CACHED_RELEASE=""
+          fi
+          
+          if [ "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
+            echo "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" > latest_release_cumulus_wasm.txt
+            echo "NEW_CUMULUS_WASM=true" >> $GITHUB_ENV
+          fi
 
+      - name: Cache latest Cumulus wasm release tag
+        uses: actions/cache@v3
+        with:
+          path: latest_release_cumulus_wasm.txt
+          key: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
+
+  check-kagome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: soramitsu/kagome  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+        id: kagome-release-tag  # The step ID to refer to later.
+
+
+      - name: Compare with cached release
+        run: |
+          if [ -f latest_release_kagome.txt ]; then
+            CACHED_RELEASE=$(cat latest_release_kagome.txt)
+          else
+            CACHED_RELEASE=""
+          fi
+          
+          if [ "${{ steps.kagome-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
+            echo "${{ steps.kagome-release-tag.outputs.tag }}" > latest_release_kagome.txt
+            echo "NEW_KAGOME_RELEASE=true" >> $GITHUB_ENV
+          fi
+
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: latest_release_kagome.txt
+          key: ${{ steps.kagome-release-tag.outputs.tag }}
+
+  check-zombienet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: paritytech/zombienet  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+        id: zombienet-release-tag  # The step ID to refer to later.
+
+
+      - name: Compare with cached release
+        run: |
+          if [ -f latest_release_zombienet.txt ]; then
+            CACHED_RELEASE=$(cat latest_release_zombienet.txt)
+          else
+            CACHED_RELEASE=""
+          fi
+          
+          if [ "${{ steps.zombienet-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
+            echo "${{ steps.zombienet-release-tag.outputs.tag }}" > latest_release_zombienet.txt
+            echo "NEW_ZOMBIENET_RELEASE=true" >> $GITHUB_ENV
+          fi
+
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: latest_release_zombienet.txt
+          key: ${{ steps.zombienet-release-tag.outputs.tag }}
+
+  fetch-zombienet:
+    runs-on: ubuntu-latest
+    needs: check-zombienet
+    if: ${{env.NEW_ZOMBIENET_RELEASE == 'true'}}
+    steps:
+      - name: Fetch Github Release Asset from zombienet
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/zombienet"
+          file: "zombienet-linux-x64"
+          target: "zombienet"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - run: "echo NEW_ZOMBIENET_RELEASE=false >> $GITHUB_ENV"
+
+  fetch-polkadot-binary:
+    runs-on: ubuntu-latest
+    needs: check-polkadot
+    if: ${{ env.NEW_POLKADOT_RELEASE == 'true' }}
+    steps:
+      - name: Fetch Github Release Asset from polkadot
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/polkadot"
+          file: "polkadot"
+          target: "polkadot"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - run: "echo NEW_POLKADOT_RELEASE=false >> $GITHUB_ENV"
+
+  fetch-cumulus-binary:
+    runs-on: ubuntu-latest
+    needs: check-cumulus
+    if: ${{ env.NEW_CUMULUS_RELEASE == 'true' }}
+    steps:
+      - name: Fetch Github Release Asset from polkadot-parachain
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/cumulus"
+          file: "polkadot-parachain"
+          target: "polkadot-parachain"
+          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+      - run: "echo NEW_CUMULUS_RELEASE=false >> $GITHUB_ENV"
+
+  fetch-cumulus-wasm-binary:
+    runs-on: ubuntu-latest
+    needs: check-cumulus-wasm
+    if: ${{ env.NEW_CUMULUS_WASM == 'true' }}
+    steps:
       - name: Fetch Github Release Asset from cumulus
         uses: dsaltares/fetch-gh-release-asset@master
         with:
@@ -74,6 +219,39 @@ jobs:
           target: "./"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - run: "echo NEW_CUMULUS_WASM=false >> $GITHUB_ENV"
+
+  fetch-kagome-binary:
+    runs-on: ubuntu-latest
+    needs: check-kagome
+    if: ${{ env.NEW_KAGOME_RELEASE == 'true' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          repository: soramitsu/kagome
+
+      - name: Build with make
+        run: |
+          cd kagome
+          make build
+          
+      - name: Cache binary
+        uses: actions/cache@v3
+        with:
+          path: build/node/  # Replace with the actual path to your binary
+          key: "kagome-binary"
+
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary]
+    steps:
+      - name: Add binaries to PATH
+        run: |
+          echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
+          chmod +x polkadot
+          chmod +x polkadot-parachain
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
