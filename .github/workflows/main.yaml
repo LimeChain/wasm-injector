@@ -11,6 +11,8 @@ on:
 jobs:
   check-polkadot:
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -21,6 +23,7 @@ jobs:
       - run: echo "Polkadot binary is at version ${{ steps.polkadot-binary-release-tag.outputs.tag }}"
 
       - name: Compare polkadot binary with cached release
+        id: set
         run: |
           if [ -f latest_release_polkadot.txt ]; then
             CACHED_RELEASE=$(cat latest_release_polkadot.txt)
@@ -30,7 +33,7 @@ jobs:
           
           if [ "${{ steps.polkadot-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.polkadot-binary-release-tag.outputs.tag }}" > latest_release_polkadot.txt
-            echo "NEW_POLKADOT_RELEASE=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           fi
 
       - name: Cache latest Polkadot binary release tag
@@ -40,6 +43,8 @@ jobs:
           key: ${{ steps.polkadot-binary-release-tag.outputs.tag }}
   check-cumulus:
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -51,6 +56,7 @@ jobs:
       - run: echo "Cumulus binary is at version ${{ steps.cumulus-binary-release-tag.outputs.tag }}"
       
       - name: Compare cumulus binary with cached release
+        id: set
         run: |
           if [ -f latest_release_cumulus.txt ]; then
             CACHED_RELEASE=$(cat latest_release_cumulus.txt)
@@ -60,7 +66,7 @@ jobs:
           
           if [ "${{ steps.cumulus-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-binary-release-tag.outputs.tag }}" > latest_release_cumulus.txt
-            echo "NEW_CUMULUS_RELEASE=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           fi
 
       - name: Cache latest Cumulus binary release tag
@@ -71,6 +77,8 @@ jobs:
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -80,7 +88,9 @@ jobs:
         id: cumulus-wasm-release-tag  # The step ID to refer to later.
 
       - run: echo "Cumulus WASM is at version ${{ steps.cumulus-wasm-release-tag.outputs.tag }}"
+
       - name: Compare cumulus binary with cached release
+        id: set
         run: |
           if [ -f latest_release_cumulus_wasm.txt ]; then
             CACHED_RELEASE=$(cat latest_release_cumulus_wasm.txt)
@@ -90,7 +100,7 @@ jobs:
           
           if [ "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" > latest_release_cumulus_wasm.txt
-            echo "NEW_CUMULUS_WASM=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           fi
 
       - name: Cache latest Cumulus wasm release tag
@@ -101,6 +111,8 @@ jobs:
 
   check-kagome:
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -108,8 +120,8 @@ jobs:
           releases-only: true  # We know that all relevant tags have a GitHub release for them.
         id: kagome-release-tag  # The step ID to refer to later.
 
-
       - name: Compare with cached release
+        id: set
         run: |
           if [ -f latest_release_kagome.txt ]; then
             CACHED_RELEASE=$(cat latest_release_kagome.txt)
@@ -119,7 +131,7 @@ jobs:
           
           if [ "${{ steps.kagome-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.kagome-release-tag.outputs.tag }}" > latest_release_kagome.txt
-            echo "NEW_KAGOME_RELEASE=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           fi
 
       - name: Cache latest release
@@ -130,6 +142,8 @@ jobs:
 
   check-zombienet:
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.set.outputs.new_release }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -139,6 +153,7 @@ jobs:
 
 
       - name: Compare with cached release
+        id: set
         run: |
           if [ -f latest_release_zombienet.txt ]; then
             CACHED_RELEASE=$(cat latest_release_zombienet.txt)
@@ -148,19 +163,14 @@ jobs:
           
           if [ "${{ steps.zombienet-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.zombienet-release-tag.outputs.tag }}" > latest_release_zombienet.txt
-            echo "NEW_ZOMBIENET_RELEASE=true" >> $GITHUB_ENV
+            echo "::set-output name=new_release::true"
           fi
 
-      - name: Cache latest release
-        uses: actions/cache@v3
-        with:
-          path: latest_release_zombienet.txt
-          key: ${{ steps.zombienet-release-tag.outputs.tag }}
 
   fetch-zombienet:
     runs-on: ubuntu-latest
     needs: check-zombienet
-    if: ${{env.NEW_ZOMBIENET_RELEASE == 'true'}}
+    if: needs.check-zombienet.outputs.new_release == 'true'
     steps:
       - name: Fetch Github Release Asset from zombienet
         uses: dsaltares/fetch-gh-release-asset@master
@@ -170,12 +180,10 @@ jobs:
           target: "zombienet"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - run: "echo NEW_ZOMBIENET_RELEASE=false >> $GITHUB_ENV"
-
   fetch-polkadot-binary:
     runs-on: ubuntu-latest
     needs: check-polkadot
-    if: ${{ env.NEW_POLKADOT_RELEASE == 'true' }}
+    if: needs.check-polkadot.outputs.new_release == 'true'
     steps:
       - name: Fetch Github Release Asset from polkadot
         uses: dsaltares/fetch-gh-release-asset@master
@@ -185,12 +193,10 @@ jobs:
           target: "polkadot"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - run: "echo NEW_POLKADOT_RELEASE=false >> $GITHUB_ENV"
-
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
     needs: check-cumulus
-    if: ${{ env.NEW_CUMULUS_RELEASE == 'true' }}
+    if: needs.check-cumulus.outputs.new_release == 'true'
     steps:
       - name: Fetch Github Release Asset from polkadot-parachain
         uses: dsaltares/fetch-gh-release-asset@master
@@ -200,12 +206,11 @@ jobs:
           target: "polkadot-parachain"
           version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      - run: "echo NEW_CUMULUS_RELEASE=false >> $GITHUB_ENV"
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
     needs: check-cumulus-wasm
-    if: ${{ env.NEW_CUMULUS_WASM == 'true' }}
+    if: needs.check-cumulus-wasm.outputs.new_release == 'true'
     steps:
       - name: Fetch Github Release Asset from cumulus
         uses: dsaltares/fetch-gh-release-asset@master
@@ -217,12 +222,10 @@ jobs:
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - run: "echo NEW_CUMULUS_WASM=false >> $GITHUB_ENV"
-
   fetch-kagome-binary:
     runs-on: ubuntu-latest
     needs: check-kagome
-    if: ${{ env.NEW_KAGOME_RELEASE == 'true' }}
+    if: needs.check-kagome.outputs.new_release == 'true'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -272,7 +275,6 @@ jobs:
           ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm ./wasm/stack-overflow.wasm.hex --hexified
           ./target/debug/wasm_injector heap-overflow ./target/debug/test.wasm ./wasm/heap-overflow.wasm.hex --hexified
           ./target/debug/wasm_injector infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
-          ./target/debug/wasm_injector noops ./target/debug/test.wasm ./wasm/noops.wasm.hex --hexified
 
       - name: Set up Julia
         uses: julia-actions/setup-julia@v1
