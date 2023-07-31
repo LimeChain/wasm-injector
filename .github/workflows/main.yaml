@@ -17,8 +17,10 @@ jobs:
       - name: Restore cache latest_release_polkadot
         uses: actions/cache/restore@v3
         with:
-          key: latest_release_polkadot.txt
+          key: latest_release_polkadot.txt-
           path: .
+          restore-keys: |
+            latest_release_polkadot.txt-
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -46,12 +48,10 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: latest_release_polkadot.txt
-          key: latest_release_polkadot.txt
-          restore-keys: |
-            latest_release_polkadot.txt
+          key: latest_release_polkadot.txt-${{github.run_number}}
          
   check-cumulus:
     runs-on: ubuntu-latest
@@ -64,6 +64,8 @@ jobs:
         with:
           key: latest_release_cumulus.txt
           path: .
+          restore-keys: |
+            latest_release_cumulus.txt-
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -92,12 +94,10 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: latest_release_cumulus.txt
-          key: latest_release_cumulus.txt
-          restore-keys: |
-            latest_release_cumulus.txt
+          key: latest_release_cumulus.txt-${{github.run_number}}
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -110,6 +110,8 @@ jobs:
         with:
           key: latest_release_cumulus_wasm.txt
           path: .
+          restore-keys: |
+            latest_release_cumulus_wasm.txt-
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -138,12 +140,10 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: latest_release_cumulus_wasm.txt
           key: latest_release_cumulus_wasm.txt-${{github.run_number}}
-          restore-keys: |
-            latest_release_cumulus_wasm.txt
 
 
 
@@ -157,6 +157,8 @@ jobs:
         with:
           key: latest_release_zombienet.txt
           path: .
+          restore-keys: |
+            latest_release_zombienet.txt-
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -183,14 +185,10 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
-        if: always()
+        uses: actions/cache/save@v3
         with:
           path: latest_release_zombienet.txt
           key: latest_release_zombienet.txt-${{github.run_number}}
-          restore-keys: |
-            latest_release_zombienet.txt
-
 
 
   fetch-zombienet:
@@ -207,13 +205,10 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
-        if: always()
+        uses: actions/cache/save@v3
         with:
           path: zombienet
           key: zombienet-${{github.run_number}}
-          restore-keys: |
-            zombienet-
   
 
   fetch-polkadot-binary:
@@ -230,13 +225,10 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
-        if: always()
+        uses: actions/cache/save@v3
         with:
           path: polkadot
           key: polkadot-${{github.run_number}}
-          restore-keys: |
-            polkadot-
 
 
   fetch-cumulus-binary:
@@ -254,12 +246,10 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: polkadot-parachain
           key: polkadot-parachain-${{github.run_number}}
-          restore-keys: |
-            polkadot-parachain-
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -286,12 +276,10 @@ jobs:
           ls -la
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
         with:
           path: fetched.wasm
           key: fetched.wasm-${{github.run_number}}
-          restore-keys: |
-            fetched.wasm-
 
   run-tests:
     runs-on: ubuntu-latest
@@ -304,24 +292,32 @@ jobs:
         with:
           key: polkadot
           path: .
+          restore-keys: |
+            polkadot-
 
       - name: Restore cache polkadot-parachain
         uses: actions/cache/restore@v3
         with:
           key: polkadot-parachain
           path: .
+          restore-keys: |
+            polkadot-parachain-
 
       - name: Restore cache zombienet
         uses: actions/cache/restore@v3
         with:
           key: zombienet
           path: .
+          restore-keys: |
+            zombienet-
 
       - name: Restore cache fetched.wasm
         uses: actions/cache/restore@v3
         with:
           key: fetched.wasm
           path: .
+          restore-keys: |
+            fetched.wasm-
 
       - name: Checkout
         uses: actions/checkout@v2
