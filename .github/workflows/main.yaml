@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
+      tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -80,6 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
+      tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     steps:
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -224,7 +226,7 @@ jobs:
           repo: "paritytech/cumulus"
           file: "polkadot-parachain"
           target: "polkadot-parachain"
-          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
+          version: "tags/${{ needs.check-cumulus.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Cache latest release
@@ -243,7 +245,7 @@ jobs:
         with:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
-          version: "tags/${{steps.cumulus-wasm-release-tag.outputs.tag}}"
+          version: "tags/${{needs.check-cumulus-wasm.outputs.tag}}"
           target: "./fetched.wasm"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -254,30 +256,9 @@ jobs:
           path: fetched.wasm
           key: fetched.wasm
 
-  fetch-kagome-binary:
-    runs-on: ubuntu-latest
-    needs: check-kagome
-    if: needs.check-kagome.outputs.new_release == 'true'
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-        with:
-          repository: soramitsu/kagome
-
-      - name: Build with make
-        run: |
-          cd kagome
-          make build
-          
-      - name: Cache binary
-        uses: actions/cache@v3
-        with:
-          path: build/node/  # Replace with the actual path to your binary
-          key: "kagome-binary"
-
   run-tests:
     runs-on: ubuntu-latest
-    needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-kagome-binary, fetch-zombienet]
+    needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-zombienet]
     if: always() 
     steps:
       - name: Add binaries to PATH
