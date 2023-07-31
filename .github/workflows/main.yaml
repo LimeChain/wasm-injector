@@ -293,32 +293,24 @@ jobs:
         with:
           key: polkadot
           path: .
-          restore-keys: |
-            polkadot
 
       - name: Restore cache polkadot-parachain
         uses: actions/cache/restore@v3
         with:
           key: polkadot-parachain
           path: .
-          restore-keys: |
-            polkadot-parachain
 
       - name: Restore cache zombienet
         uses: actions/cache/restore@v3
         with:
           key: zombienet
           path: .
-          restore-keys: |
-            zombienet 
 
       - name: Restore cache fetched.wasm
         uses: actions/cache/restore@v3
         with:
           key: fetched.wasm
           path: .
-          restore-keys: |
-            fetched.wasm 
 
       - name: Checkout
         uses: actions/checkout@v2
