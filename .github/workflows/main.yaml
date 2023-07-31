@@ -33,7 +33,7 @@ jobs:
           
           if [ "${{ steps.polkadot-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.polkadot-binary-release-tag.outputs.tag }}" > latest_release_polkadot.txt
-            echo "new_release=true >> $GITHUB_OUTPUT"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Polkadot binary release tag
@@ -67,7 +67,7 @@ jobs:
           
           if [ "${{ steps.cumulus-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-binary-release-tag.outputs.tag }}" > latest_release_cumulus.txt
-            echo "new_release=true >> $GITHUB_OUTPUT"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Cumulus binary release tag
@@ -101,7 +101,7 @@ jobs:
           
           if [ "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" > latest_release_cumulus_wasm.txt
-            echo "new_release=true >> $GITHUB_OUTPUT"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Cumulus wasm release tag
@@ -132,7 +132,7 @@ jobs:
           
           if [ "${{ steps.kagome-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.kagome-release-tag.outputs.tag }}" > latest_release_kagome.txt
-            echo "new_release=true >> $GITHUB_OUTPUT"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache latest release
@@ -164,7 +164,7 @@ jobs:
           
           if [ "${{ steps.zombienet-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.zombienet-release-tag.outputs.tag }}" > latest_release_zombienet.txt
-            echo "new_release=true >> $GITHUB_OUTPUT"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Cache latest release
