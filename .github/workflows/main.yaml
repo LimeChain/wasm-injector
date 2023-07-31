@@ -14,6 +14,12 @@ jobs:
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
+      - name: Download new release flag
+        uses: actions/download-artifact@v2
+        with:
+          name: latest_release_polkadot.txt
+          path: .
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/polkadot  # The repository to scan.
@@ -36,11 +42,11 @@ jobs:
             echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Cache latest Polkadot binary release tag
-        uses: actions/cache@v3
+      - name:  Archive latest Polkadot binary release tag
+        uses: actions/upload-artifact@v3
         with:
+          name: latest_release_polkadot.txt
           path: latest_release_polkadot.txt
-          key: ${{ runner.os }}-latest_release_polkadot-${{ hashFiles('**/lockfiles') }}
 
   check-cumulus:
     runs-on: ubuntu-latest
@@ -48,6 +54,11 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
     steps:
+      - name: Download new release flag
+        uses: actions/download-artifact@v2
+        with:
+          name: latest_release_cumulus.txt
+          path: .
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -71,11 +82,11 @@ jobs:
             echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Cache latest Cumulus binary release tag
-        uses: actions/cache@v3
+      - name:  Archive latest Cumulus binary release tag
+        uses: actions/upload-artifact@v3
         with:
+          name: latest_release_cumulus.txt
           path: latest_release_cumulus.txt
-          key: ${{ runner.os }}-latest-release-cumulus-${{ hashFiles('**/lockfiles') }}
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -83,6 +94,11 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     steps:
+      - name: Download new release flag
+        uses: actions/download-artifact@v2
+        with:
+          name: latest_release_cumulus_wasm.txt
+          path: .
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -106,17 +122,23 @@ jobs:
             echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Cache latest Cumulus wasm release tag
-        uses: actions/cache@v3
+      - name: Archive latest Cumulus wasm release tag
+        uses: actions/upload-artifact@v3
         with:
           path: latest_release_cumulus_wasm.txt
-          key: ${{ runner.os }}-latest-release-cumulus-wasm-${{ hashFiles('**/lockfiles') }}
+          name:  latest_release_cumulus_wasm.txt
+
 
   check-zombienet:
     runs-on: ubuntu-latest
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
+      - name: Download new release flag
+        uses: actions/download-artifact@v2
+        with:
+          name: latest_release_zombienet.txt
+          path: .
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/zombienet  # The repository to scan.
@@ -138,11 +160,11 @@ jobs:
             echo "new_release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Cache latest release
-        uses: actions/cache@v3
+      - name: Archive latest zombienet release tag
+        uses: actions/upload-artifact@v3
         with:
           path: latest_release_zombienet.txt
-          key: ${{ runner.os }}-latest-release-zombienet-${{ hashFiles('**/lockfiles') }}
+          name: latest_release_zombienet.txt
 
 
   fetch-zombienet:
@@ -158,11 +180,11 @@ jobs:
           target: "zombienet"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Cache latest release
-        uses: actions/cache@v3
+      - name: Archive latest zombienet release
+        uses: actions/upload-artifact@v3
         with:
           path: zombienet
-          key: ${{ runner.os }}-zombienet-${{ hashFiles('**/lockfiles') }}
+          name: zombienet
   
 
   fetch-polkadot-binary:
@@ -178,11 +200,11 @@ jobs:
           target: "polkadot"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Cache latest release
-        uses: actions/cache@v3
+      - name: Archive latest release
+        uses: actions/upload-artifact@v3
         with:
           path: polkadot
-          key: ${{ runner.os }}-polkadot-${{ hashFiles('**/lockfiles') }}
+          name: polkadot
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -198,11 +220,11 @@ jobs:
           version: "tags/${{ needs.check-cumulus.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Cache latest release
-        uses: actions/cache@v3
+      - name: Archive latest release
+        uses: actions/upload-artifact@v3
         with:
           path: polkadot-parachain
-          key: ${{ runner.os }}-polkadot-parachain-${{ hashFiles('**/lockfiles') }}
+          name: polkadot-parachain
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -219,11 +241,11 @@ jobs:
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Cache latest release
-        uses: actions/cache@v3
+      - name: Archive latest release
+        uses: actions/upload-artifact@v3
         with:
           path: fetched.wasm
-          key: ${{ runner.os }}-fetched-${{ hashFiles('**/lockfiles') }}
+          name: fetched.wasm
 
   run-tests:
     runs-on: ubuntu-latest
