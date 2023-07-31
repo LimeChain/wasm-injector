@@ -33,14 +33,15 @@ jobs:
           
           if [ "${{ steps.polkadot-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.polkadot-binary-release-tag.outputs.tag }}" > latest_release_polkadot.txt
-            echo "::set-output name=new_release::true"
+            echo "new_release=true >> $GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Polkadot binary release tag
         uses: actions/cache@v3
         with:
           path: latest_release_polkadot.txt
-          key: ${{ steps.polkadot-binary-release-tag.outputs.tag }}
+          key: latest_release_polkadot.txt
+          
   check-cumulus:
     runs-on: ubuntu-latest
     outputs:
@@ -66,14 +67,14 @@ jobs:
           
           if [ "${{ steps.cumulus-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-binary-release-tag.outputs.tag }}" > latest_release_cumulus.txt
-            echo "::set-output name=new_release::true"
+            echo "new_release=true >> $GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Cumulus binary release tag
         uses: actions/cache@v3
         with:
           path: latest_release_cumulus.txt
-          key: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
+          key: latest_release_cumulus.txt
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -100,14 +101,14 @@ jobs:
           
           if [ "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" > latest_release_cumulus_wasm.txt
-            echo "::set-output name=new_release::true"
+            echo "new_release=true >> $GITHUB_OUTPUT"
           fi
 
       - name: Cache latest Cumulus wasm release tag
         uses: actions/cache@v3
         with:
           path: latest_release_cumulus_wasm.txt
-          key: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
+          key: latest_release_cumulus_wasm.txt
 
   check-kagome:
     runs-on: ubuntu-latest
@@ -131,14 +132,14 @@ jobs:
           
           if [ "${{ steps.kagome-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.kagome-release-tag.outputs.tag }}" > latest_release_kagome.txt
-            echo "::set-output name=new_release::true"
+            echo "new_release=true >> $GITHUB_OUTPUT"
           fi
 
       - name: Cache latest release
         uses: actions/cache@v3
         with:
           path: latest_release_kagome.txt
-          key: ${{ steps.kagome-release-tag.outputs.tag }}
+          key: latest_release_kagome.txt
 
   check-zombienet:
     runs-on: ubuntu-latest
@@ -163,8 +164,14 @@ jobs:
           
           if [ "${{ steps.zombienet-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.zombienet-release-tag.outputs.tag }}" > latest_release_zombienet.txt
-            echo "::set-output name=new_release::true"
+            echo "new_release=true >> $GITHUB_OUTPUT"
           fi
+
+      - name: Cache latest release
+        uses: actions/cache@v3
+        with:
+          path: latest_release_zombienet.txt
+          key: latest_release_zombienet.txt
 
 
   fetch-zombienet:
