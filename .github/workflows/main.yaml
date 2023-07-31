@@ -261,6 +261,14 @@ jobs:
     needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-zombienet]
     if: always() 
     steps:
+      - name: Debugging
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List files:"
+          ls -la
+          echo "GITHUB_WORKSPACE value:"
+          echo "$GITHUB_WORKSPACE"
       - name: Add binaries to PATH
         run: |
           echo "$GITHUB_WORKSPACE" >> $GITHUB_PATH
