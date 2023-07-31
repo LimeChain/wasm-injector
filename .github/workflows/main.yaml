@@ -259,6 +259,9 @@ jobs:
     needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-zombienet]
     if: always() 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Download all artifacts
         uses: actions/download-artifact@v3
 
