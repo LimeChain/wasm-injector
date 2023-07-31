@@ -14,6 +14,15 @@ jobs:
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
+      - name: Restore cache latest_release_polkadot
+        uses: actions/cache/restore@v3
+        with:
+          key: latest_release_polkadot
+          path: .
+          restore-keys: |
+            latest_release_polkadot
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/polkadot  # The repository to scan.
@@ -44,7 +53,7 @@ jobs:
           path: latest_release_polkadot
           key: latest_release_polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_polkadot-${{ runner.os }}
+            latest_release_polkadot
 
   check-cumulus:
     runs-on: ubuntu-latest
@@ -52,6 +61,15 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
     steps:
+      - name: Restore cache latest_release_cumulus
+        uses: actions/cache/restore@v3
+        with:
+          key: latest_release_cumulus
+          path: .
+          restore-keys: |
+            latest_release_cumulus 
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -83,7 +101,7 @@ jobs:
           path: latest_release_cumulus
           key: latest_release_cumulus-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_cumulus-${{ runner.os }}
+            latest_release_cumulus
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -91,6 +109,15 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     steps:
+      - name: Restore cache latest_release_cumulus_wasm
+        uses: actions/cache/restore@v3
+        with:
+          key: latest_release_cumulus_wasm
+          path: .
+          restore-keys: |
+            latest_release_cumulus_wasm
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -122,7 +149,7 @@ jobs:
           path: latest_release_cumulus_wasm
           key: latest_release_cumulus_wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_cumulus_wasm-${{ runner.os }}
+            latest_release_cumulus_wasm
 
 
   check-zombienet:
@@ -130,6 +157,15 @@ jobs:
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
+      - name: Restore cache latest_release_zombienet
+        uses: actions/cache/restore@v3
+        with:
+          key: latest_release_zombienet
+          path: .
+          restore-keys: |
+            latest_release_zombienet
+        continue-on-error: true
+
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/zombienet  # The repository to scan.
@@ -159,7 +195,7 @@ jobs:
           path: latest_release_zombienet
           key: latest_release_zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_zombienet-${{ runner.os }}
+            latest_release_zombienet
 
 
   fetch-zombienet:
@@ -181,7 +217,7 @@ jobs:
           path: zombienet
           key: zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            zombienet-${{ runner.os }}
+            zombienet
   
 
   fetch-polkadot-binary:
@@ -203,7 +239,7 @@ jobs:
           path: polkadot
           key: polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            polkadot-${{ runner.os }}
+            polkadot
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -225,7 +261,7 @@ jobs:
           path: polkadot-parachain
           key: polkadot-parachain-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            polkadot-parachain-${{ runner.os }}
+            polkadot-parachain
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -257,13 +293,46 @@ jobs:
           path: fetched.wasm
           key: fetched.wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            fetched.wasm-${{ runner.os }}
+            fetched.wasm
 
   run-tests:
     runs-on: ubuntu-latest
     needs: [fetch-polkadot-binary, fetch-cumulus-binary, fetch-cumulus-wasm-binary, fetch-zombienet]
     if: always() 
     steps:
+
+      - name: Restore cache polkadot
+        uses: actions/cache/restore@v3
+        with:
+          key: polkadot
+          path: .
+          restore-keys: |
+            polkadot
+
+      - name: Restore cache polkadot-parachain
+        uses: actions/cache/restore@v3
+        with:
+          key: polkadot-parachain
+          path: .
+          restore-keys: |
+            polkadot-parachain
+
+      - name: Restore cache zombienet
+        uses: actions/cache/restore@v3
+        with:
+          key: zombienet
+          path: .
+          restore-keys: |
+            zombienet 
+
+      - name: Restore cache fetched.wasm
+        uses: actions/cache/restore@v3
+        with:
+          key: fetched.wasm
+          path: .
+          restore-keys: |
+            fetched.wasm 
+
       - name: Checkout
         uses: actions/checkout@v2
 
