@@ -41,6 +41,8 @@ jobs:
           if [ "${{ steps.polkadot-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.polkadot-binary-release-tag.outputs.tag }}" > latest_release_polkadot.txt
             echo "new_release=true" >> "$GITHUB_OUTPUT"
+          else 
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name:  Archive latest Polkadot binary release tag
@@ -83,6 +85,8 @@ jobs:
           if [ "${{ steps.cumulus-binary-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-binary-release-tag.outputs.tag }}" > latest_release_cumulus.txt
             echo "new_release=true" >> "$GITHUB_OUTPUT"
+          else 
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name:  Archive latest Cumulus binary release tag
@@ -125,7 +129,10 @@ jobs:
           if [ "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.cumulus-wasm-release-tag.outputs.tag }}" > latest_release_cumulus_wasm.txt
             echo "new_release=true" >> "$GITHUB_OUTPUT"
+          else 
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
+
 
       - name: Archive latest Cumulus wasm release tag
         uses: actions/upload-artifact@v3
@@ -165,6 +172,8 @@ jobs:
           if [ "${{ steps.zombienet-release-tag.outputs.tag }}" != "$CACHED_RELEASE" ]; then
             echo "${{ steps.zombienet-release-tag.outputs.tag }}" > latest_release_zombienet.txt
             echo "new_release=true" >> "$GITHUB_OUTPUT"
+          else 
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Archive latest zombienet release tag
@@ -248,10 +257,17 @@ jobs:
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      - name: Debugging
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "List files:"
+          ls -la
+
       - name: Archive latest release
         uses: actions/upload-artifact@v3
         with:
-          path: fetched.wasm
+          path: ./fetched.wasm
           name: fetched.wasm
 
   run-tests:
