@@ -253,9 +253,11 @@ jobs:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
           version: "tags/${{needs.check-cumulus-wasm.outputs.tag}}"
-          target: "./fetched.wasm"
+          target: "./"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - run: find . -type f -regex '.*/rococo-parachain_runtime.*wasm' -exec mv {} fetched.wasm \;
 
       - name: Debugging
         run: |
@@ -267,7 +269,7 @@ jobs:
       - name: Archive latest release
         uses: actions/upload-artifact@v3
         with:
-          path: ./fetched.wasm
+          path: fetched.wasm
           name: fetched.wasm
 
   run-tests:
