@@ -17,10 +17,10 @@ jobs:
       - name: Restore cache latest_release_polkadot
         uses: actions/cache/restore@v3
         with:
-          key: latest_release_polkadot
+          key: latest_release_polkadot.txt
           path: .
           restore-keys: |
-            latest_release_polkadot
+            latest_release_polkadot.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -50,10 +50,10 @@ jobs:
       - name: update cache
         uses: actions/cache@v3
         with:
-          path: latest_release_polkadot
+          path: latest_release_polkadot.txt
           key: latest_release_polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_polkadot
+            latest_release_polkadot.txt
 
   check-cumulus:
     runs-on: ubuntu-latest
@@ -64,10 +64,10 @@ jobs:
       - name: Restore cache latest_release_cumulus
         uses: actions/cache/restore@v3
         with:
-          key: latest_release_cumulus
+          key: latest_release_cumulus.txt
           path: .
           restore-keys: |
-            latest_release_cumulus 
+            latest_release_cumulus.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -98,10 +98,10 @@ jobs:
       - name: update cache
         uses: actions/cache@v3
         with:
-          path: latest_release_cumulus
+          path: latest_release_cumulus.txt
           key: latest_release_cumulus-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_cumulus
+            latest_release_cumulus.txt
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -112,10 +112,10 @@ jobs:
       - name: Restore cache latest_release_cumulus_wasm
         uses: actions/cache/restore@v3
         with:
-          key: latest_release_cumulus_wasm
+          key: latest_release_cumulus_wasm.txt
           path: .
           restore-keys: |
-            latest_release_cumulus_wasm
+            latest_release_cumulus_wasm.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -146,10 +146,10 @@ jobs:
       - name: update cache
         uses: actions/cache@v3
         with:
-          path: latest_release_cumulus_wasm
+          path: latest_release_cumulus_wasm.txt
           key: latest_release_cumulus_wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_cumulus_wasm
+            latest_release_cumulus_wasm.txt
 
 
   check-zombienet:
@@ -160,10 +160,10 @@ jobs:
       - name: Restore cache latest_release_zombienet
         uses: actions/cache/restore@v3
         with:
-          key: latest_release_zombienet
+          key: latest_release_zombienet.txt
           path: .
           restore-keys: |
-            latest_release_zombienet
+            latest_release_zombienet.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -192,10 +192,10 @@ jobs:
       - name: update cache
         uses: actions/cache@v3
         with:
-          path: latest_release_zombienet
+          path: latest_release_zombienet.txt
           key: latest_release_zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
-            latest_release_zombienet
+            latest_release_zombienet.txt
 
 
   fetch-zombienet:
