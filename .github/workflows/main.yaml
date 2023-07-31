@@ -19,8 +19,6 @@ jobs:
         with:
           key: latest_release_polkadot.txt
           path: .
-          restore-keys: |
-            latest_release_polkadot.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -48,13 +46,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: latest_release_polkadot.txt
-          key: latest_release_polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            latest_release_polkadot.txt
-
+          key: latest_release_polkadot.txt
+         
   check-cumulus:
     runs-on: ubuntu-latest
     outputs:
@@ -66,8 +63,6 @@ jobs:
         with:
           key: latest_release_cumulus.txt
           path: .
-          restore-keys: |
-            latest_release_cumulus.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -96,12 +91,11 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: latest_release_cumulus.txt
-          key: latest_release_cumulus-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            latest_release_cumulus.txt
+          key: latest_release_cumulus.txt
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -114,8 +108,6 @@ jobs:
         with:
           key: latest_release_cumulus_wasm.txt
           path: .
-          restore-keys: |
-            latest_release_cumulus_wasm.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -144,12 +136,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: latest_release_cumulus_wasm.txt
-          key: latest_release_cumulus_wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            latest_release_cumulus_wasm.txt
+          key: latest_release_cumulus_wasm.txt
+
 
 
   check-zombienet:
@@ -162,8 +154,6 @@ jobs:
         with:
           key: latest_release_zombienet.txt
           path: .
-          restore-keys: |
-            latest_release_zombienet.txt
         continue-on-error: true
 
       - uses: oprypin/find-latest-tag@v1
@@ -190,12 +180,12 @@ jobs:
           fi
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: latest_release_zombienet.txt
-          key: latest_release_zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            latest_release_zombienet.txt
+          key: latest_release_zombienet.txt
+
 
 
   fetch-zombienet:
@@ -212,12 +202,11 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: zombienet
-          key: zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            zombienet
+          key: zombienet
   
 
   fetch-polkadot-binary:
@@ -234,12 +223,12 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: polkadot
-          key: polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            polkadot
+          key: polkadot
+
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -256,12 +245,11 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: polkadot-parachain
-          key: polkadot-parachain-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            polkadot-parachain
+          key: polkadot-parachain
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -288,12 +276,11 @@ jobs:
           ls -la
 
       - name: update cache
-        uses: actions/cache@v3
+        uses: actions/cache/save@v3
+        if: always()
         with:
           path: fetched.wasm
-          key: fetched.wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            fetched.wasm
+          key: fetched.wasm
 
   run-tests:
     runs-on: ubuntu-latest
