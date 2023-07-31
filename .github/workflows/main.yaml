@@ -14,13 +14,6 @@ jobs:
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
-      - name: Download new release flag
-        uses: actions/download-artifact@v3
-        with:
-          name: latest_release_polkadot.txt
-          path: .
-        continue-on-error: true
-
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/polkadot  # The repository to scan.
@@ -45,11 +38,13 @@ jobs:
             echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name:  Archive latest Polkadot binary release tag
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
-          name: latest_release_polkadot.txt
-          path: latest_release_polkadot.txt
+          path: latest_release_polkadot
+          key: latest_release_polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            latest_release_polkadot-${{ runner.os }}
 
   check-cumulus:
     runs-on: ubuntu-latest
@@ -57,13 +52,6 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
     steps:
-      - name: Download new release flag
-        uses: actions/download-artifact@v3
-        with:
-          name: latest_release_cumulus.txt
-          path: .
-        continue-on-error: true
-
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -89,11 +77,13 @@ jobs:
             echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name:  Archive latest Cumulus binary release tag
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
-          name: latest_release_cumulus.txt
-          path: latest_release_cumulus.txt
+          path: latest_release_cumulus
+          key: latest_release_cumulus-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            latest_release_cumulus-${{ runner.os }}
 
   check-cumulus-wasm:
     runs-on: ubuntu-latest
@@ -101,13 +91,6 @@ jobs:
       new_release: ${{ steps.set.outputs.new_release }}
       tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     steps:
-      - name: Download new release flag
-        uses: actions/download-artifact@v3
-        with:
-          name: latest_release_cumulus_wasm.txt
-          path: .
-        continue-on-error: true
-
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/cumulus  # The repository to scan.
@@ -133,12 +116,13 @@ jobs:
             echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-
-      - name: Archive latest Cumulus wasm release tag
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
-          path: latest_release_cumulus_wasm.txt
-          name:  latest_release_cumulus_wasm.txt
+          path: latest_release_cumulus_wasm
+          key: latest_release_cumulus_wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            latest_release_cumulus_wasm-${{ runner.os }}
 
 
   check-zombienet:
@@ -146,13 +130,6 @@ jobs:
     outputs:
       new_release: ${{ steps.set.outputs.new_release }}
     steps:
-      - name: Download new release flag
-        uses: actions/download-artifact@v3
-        with:
-          name: latest_release_zombienet.txt
-          path: .
-        continue-on-error: true
-
       - uses: oprypin/find-latest-tag@v1
         with:
           repository: paritytech/zombienet  # The repository to scan.
@@ -176,11 +153,13 @@ jobs:
             echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Archive latest zombienet release tag
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
-          path: latest_release_zombienet.txt
-          name: latest_release_zombienet.txt
+          path: latest_release_zombienet
+          key: latest_release_zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            latest_release_zombienet-${{ runner.os }}
 
 
   fetch-zombienet:
@@ -196,11 +175,13 @@ jobs:
           target: "zombienet"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Archive latest zombienet release
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
           path: zombienet
-          name: zombienet
+          key: zombienet-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            zombienet-${{ runner.os }}
   
 
   fetch-polkadot-binary:
@@ -216,11 +197,13 @@ jobs:
           target: "polkadot"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Archive latest release
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
           path: polkadot
-          name: polkadot
+          key: polkadot-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            polkadot-${{ runner.os }}
 
   fetch-cumulus-binary:
     runs-on: ubuntu-latest
@@ -236,11 +219,13 @@ jobs:
           version: "tags/${{ needs.check-cumulus.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Archive latest release
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
           path: polkadot-parachain
-          name: polkadot-parachain
+          key: polkadot-parachain-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            polkadot-parachain-${{ runner.os }}
 
   fetch-cumulus-wasm-binary:
     runs-on: ubuntu-latest
@@ -266,11 +251,13 @@ jobs:
           echo "List files:"
           ls -la
 
-      - name: Archive latest release
-        uses: actions/upload-artifact@v3
+      - name: update cache
+        uses: actions/cache@v3
         with:
           path: fetched.wasm
-          name: fetched.wasm
+          key: fetched.wasm-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            fetched.wasm-${{ runner.os }}
 
   run-tests:
     runs-on: ubuntu-latest
@@ -280,9 +267,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
-
       - name: Debugging
         run: |
           echo "Current directory:"
@@ -291,7 +275,6 @@ jobs:
           ls -la
           echo "GITHUB_WORKSPACE value:"
           echo "$GITHUB_WORKSPACE"
-
 
       - name: Add binaries to PATH
         run: |
