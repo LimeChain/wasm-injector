@@ -73,7 +73,7 @@ jobs:
       - name: Fetch kagome
         run: |
           docker pull soramitsu/kagome
-          docker run -v $GITHUB_WORKSPACE:/ --rm soramitsu/kagome:latest cp /usr/local/bin/kagome /kagome
+          docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest cp /usr/local/bin/kagome /kagome/kagome
 
       - name: Debugging
         run: |
