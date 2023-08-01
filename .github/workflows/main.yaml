@@ -81,7 +81,7 @@ jobs:
           pwd
           echo "List files:"
           ls -la
-          la -la kagome
+          ls -la kagome
           echo "GITHUB_WORKSPACE value:"
           echo "$GITHUB_WORKSPACE"
 
