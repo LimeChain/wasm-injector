@@ -50,6 +50,14 @@ jobs:
           version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      - name: Fetch Github Release Asset from zombienet
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: "paritytech/zombienet"
+          file: "zombienet-linux-x64"
+          target: "zombienet"
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
       - name: Fetch Github Release Asset from cumulus
         uses: dsaltares/fetch-gh-release-asset@master
         with:
@@ -66,6 +74,7 @@ jobs:
         run: |
           docker pull soramitsu/kagome
           docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest cp /usr/local/bin/kagome /kagome/kagome
+          mv kagome/kagome ..
 
       - name: Debugging
         run: |
