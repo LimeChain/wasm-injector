@@ -12,6 +12,8 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
     
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -64,9 +66,6 @@ jobs:
         run: |
           docker pull soramitsu/kagome
           docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest cp /usr/local/bin/kagome .
-
-      - name: Checkout
-        uses: actions/checkout@v2
 
       - name: Debugging
         run: |
