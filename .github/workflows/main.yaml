@@ -73,7 +73,7 @@ jobs:
       - name: Fetch kagome
         run: |
           docker pull soramitsu/kagome
-          docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest cp /usr/local/bin/kagome .
+          docker run -v $GITHUB_WORKSPACE:/kagome --rm soramitsu/kagome:latest cp /usr/local/bin/kagome /kagome/kagome
 
       - name: Debugging
         run: |
@@ -91,7 +91,7 @@ jobs:
           chmod +x polkadot
           chmod +x polkadot-parachain
           chmod +x zombienet
-          chmod +x kagome
+          chmod +x kagome/kagome
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
