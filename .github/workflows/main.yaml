@@ -74,7 +74,7 @@ jobs:
         run: |
           docker pull soramitsu/kagome
           docker run -v $GITHUB_WORKSPACE:/kagome-docker --rm soramitsu/kagome:latest cp /usr/local/bin/kagome .
-          mv kagome-docker/kagome .
+          mv kagome-docker/* .
 
       - name: Debugging
         run: |
