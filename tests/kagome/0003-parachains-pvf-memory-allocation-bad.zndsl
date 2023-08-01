@@ -1,5 +1,5 @@
 Description: PVF memory allocation
-Network: ./0003-parachains-pvf-memory-allocation-kagome-bad.toml
+Network: ./0003-parachains-pvf-memory-allocation-bad.toml
 Creds: config
 
 # Check authority status.

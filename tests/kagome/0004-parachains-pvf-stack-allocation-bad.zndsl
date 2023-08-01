@@ -1,5 +1,5 @@
 Description: PVF stack allocation
-Network: ./0004-parachains-pvf-stack-allocation-kagome-bad.toml
+Network: ./0004-parachains-pvf-stack-allocation-bad.toml
 Creds: config
 
 # Check authority status.
