@@ -120,4 +120,8 @@ jobs:
       - name: Run Julia script
         run: julia scripts/runTests.jl
 
-      - 
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ./tests_output
+          key: test-output-${{github.run_number}}
