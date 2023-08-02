@@ -6,9 +6,8 @@ use super::injector::FunctionMapper;
 
 #[derive(clap::ValueEnum, PartialEq, Eq, Clone, Debug)]
 pub enum Injection {
-    Nothing,
     InfiniteLoop,
-    JibberishReturnValue,
+    BadReturnValue,
     StackOverflow,
     Noops,
     HeapOverflow,
@@ -24,9 +23,8 @@ type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 
 pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
     Box::new(match injection {
-        Injection::Nothing => |_| Ok(()),
         Injection::InfiniteLoop => inject_infinite_loop,
-        Injection::JibberishReturnValue => inject_jibberish_return_value,
+        Injection::BadReturnValue => inject_jibberish_return_value,
         Injection::StackOverflow => inject_stack_overflow,
         Injection::Noops => inject_noops,
         Injection::HeapOverflow => inject_heap_overflow,
@@ -128,7 +126,7 @@ mod tests {
         function_body
     }
 
-    fn load_module() -> Module{     
+    fn load_module() -> Module {
         let module_path = Path::new(WASM_PATH);
         let module = load_module_from_wasm(module_path).unwrap();
         module
@@ -155,7 +153,7 @@ mod tests {
     #[test]
     fn test_inject_jibberish_return_value() {
         let mut module = load_module();
-        let injection = Injection::JibberishReturnValue;
+        let injection = Injection::BadReturnValue;
 
         assert!(injection.inject(&mut module).is_ok());
 
