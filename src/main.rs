@@ -43,7 +43,7 @@ enum Action {
 
 #[derive(Parser, Debug, Clone)]
 struct GlobalOpts {
-    #[arg(required = true, help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
+    #[arg(global = true, required = true, help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
     source: PathBuf,
 
     #[arg(global = true, help = "Destination file path (optional)", value_hint = ValueHint::FilePath)]
@@ -60,18 +60,19 @@ fn main() -> Result<(), String> {
             Action::Inject {
                 compressed,
                 hexified,
+                injection,
                 ..
             } => {
-                file_name = format!("injected_{}", file_name);
+                file_name = format!("{}-{}.wasm", injection, file_name);
                 if *compressed {
-                    file_name = format!("compressed_{}", file_name);
+                    file_name = format!("compressed-{}", file_name);
                 }
                 if *hexified {
-                    file_name = format!("hexified_{}.hex", file_name);
+                    file_name = format!("hexified-{}.hex", file_name);
                 }
             }
             Action::Decode { .. } => {
-                file_name = format!("decoded_{}.wasm", file_name);
+                file_name = format!("decoded-{}.wasm", file_name);
             }
         }
 

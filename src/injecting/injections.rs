@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use wasm_instrument::parity_wasm::elements::{
     BlockType, FuncBody, Instruction, Instructions, Module,
 };
@@ -19,6 +20,17 @@ impl Injection {
     }
 }
 
+impl Display for Injection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Injection::InfiniteLoop => write!(f, "infinite-loop"),
+            Injection::BadReturnValue => write!(f, "bad-return-value"),
+            Injection::StackOverflow => write!(f, "stack-overflow"),
+            Injection::Noops => write!(f, "noops"),
+            Injection::HeapOverflow => write!(f, "heap-overflow"),
+        }
+    }
+}
 type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 
 pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
