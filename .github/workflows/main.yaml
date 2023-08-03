@@ -61,12 +61,14 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git checkout -b feat/cicd
           git add .
           git commit -m "Update tag files" || echo "No changes to commit"
-          git push
+          git push origin feat/cicd
 
       - name: Check if tags have changed
         id: check
+        if: always()
         run: |
           git diff --name-only HEAD HEAD~1 > changed_files.txt
           if grep -q "TAGS.txt" changed_files.txt; then
