@@ -1,19 +1,25 @@
-name: Daily Workflow
+name: Run zombienet tests
 
 on:
-  workflow_dispatch:
   schedule:
     - cron:  '0 0 * * *'
-  push:
-    branches:
-      - feat/cicd
+  workflow_dispatch:
+  pull_request:
+    branches: [ develop ]
 
 jobs:
-  main:
+  check:
+    outputs:
+      new_release: ${{ steps.check.outputs.new_release }}
+      cumulus-binary-release-tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}
+      cumulus-wasm-release-tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with: 
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          ref: feat/cicd
     
       - uses: oprypin/find-latest-tag@v1
         with:
@@ -33,6 +39,70 @@ jobs:
 
       - run: echo "Cumulus WASM is at version ${{ steps.cumulus-wasm-release-tag.outputs.tag }}"
 
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: soramitsu/kagome  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+        id: kagome-release-tag  # The step ID to refer to later.
+  
+      - run: echo "Kagome is at version ${{ steps.kagome-release-tag.outputs.tag }}"
+
+      - uses: oprypin/find-latest-tag@v1
+        with:
+          repository: paritytech/polkadot  # The repository to scan.
+          releases-only: true  # We know that all relevant tags have a GitHub release for them.
+        id: polkadot-release-tag  # The step ID to refer to later.
+  
+      - run: echo "Polkadot is at version ${{ steps.polkadot-release-tag.outputs.tag }}"
+
+      - name: Calculate hash of the tests folder and write to dependencies.txt
+        run: |
+          echo "Calculating hash for the tests folder..."
+          TESTS_HASH=$(find tests -type f -print0 | sort -z | xargs -0 shasum | shasum | awk '{ print $1 }')
+          echo "Tests folder hash: $TESTS_HASH"
+          echo "Tests folder hash: $TESTS_HASH" >> dependencies.txt
+
+
+      - name: Write tags to file
+        run: |
+          echo "Cumulus binary tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}" >> dependencies.txt
+          echo "Cumulus WASM tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}" >> dependencies.txt
+          echo "Kagome tag: ${{ steps.kagome-release-tag.outputs.tag }}" >> dependencies.txt
+          echo "Polkadot tag: ${{ steps.polkadot-release-tag.outputs.tag }}" >> dependencies.txt
+
+      - name: Check if tags have changed
+        id: check
+        run: |
+          if git diff-index --quiet HEAD; then
+            echo "dependencies file has changed!"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tags file has not changed."
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit latest release version
+        if: ${{ steps.check.outputs.new_release == 'true' }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add dependencies.txt
+          git commit -m "Update dependencies file"
+          git pull --rebase origin feat/cicd
+          git push origin feat/cicd
+
+
+
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: check
+    if: ${{ needs.check.outputs.new_release == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with: 
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
       - name: Fetch Github Release Asset from polkadot
         uses: dsaltares/fetch-gh-release-asset@master
         with:
@@ -47,7 +117,7 @@ jobs:
           repo: "paritytech/cumulus"
           file: "polkadot-parachain"
           target: "polkadot-parachain"
-          version: "tags/${{ steps.cumulus-binary-release-tag.outputs.tag }}"
+          version: "tags/${{ needs.check.outputs.cumulus-binary-release-tag }}"
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Fetch Github Release Asset from zombienet
@@ -63,7 +133,7 @@ jobs:
         with:
           repo: "paritytech/cumulus"
           file: "rococo-parachain_runtime(.*)wasm"
-          version: "tags/${{steps.cumulus-wasm-release-tag.outputs.tag}}"
+          version: "tags/${{ needs.check.outputs.cumulus-wasm-release-tag}}"
           target: "./"
           regex: true
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -131,10 +201,3 @@ jobs:
     
       - name: Run Julia script
         run: julia scripts/runTests.jl
-
-      - uses: actions/cache@v3
-        if: always()
-        with:
-          path: |
-            ./tests_output
-          key: test-output-${{github.run_number}}
