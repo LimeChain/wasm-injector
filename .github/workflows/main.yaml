@@ -1,7 +1,11 @@
 name: Run zombienet tests
 
-on: workflow_dispatch
-
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * *'
+  pull_request:
+    branches: [ develop ]
 
 jobs:
   check:
