@@ -1,3 +1,0 @@
-Cumulus binary tag: v0.9.430
-Cumulus WASM tag: parachains-v9430
-Kagome tag: v0.9.0
