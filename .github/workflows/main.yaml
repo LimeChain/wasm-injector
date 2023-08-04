@@ -63,25 +63,25 @@ jobs:
           echo "Tests folder hash: $TESTS_HASH" >> dependencies.txt
 
 
-      - name: Write tags to file
+      - name: Write tags to dependencies file
         run: |
           echo "Cumulus binary tag: ${{ steps.cumulus-binary-release-tag.outputs.tag }}" >> dependencies.txt
           echo "Cumulus WASM tag: ${{ steps.cumulus-wasm-release-tag.outputs.tag }}" >> dependencies.txt
           echo "Kagome tag: ${{ steps.kagome-release-tag.outputs.tag }}" >> dependencies.txt
           echo "Polkadot tag: ${{ steps.polkadot-release-tag.outputs.tag }}" >> dependencies.txt
 
-      - name: Check if tags have changed
+      - name: Check if dependencies have changed
         id: check
         run: |
           if git diff-index --quiet HEAD; then
             echo "dependencies file has changed!"
             echo "new_release=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Tags file has not changed."
+            echo "dependencies file has NOT changed."
             echo "new_release=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit latest release version
+      - name: Commit latest dependencies
         if: ${{ steps.check.outputs.new_release == 'true' }}
         run: |
           git config --local user.email "action@github.com"
