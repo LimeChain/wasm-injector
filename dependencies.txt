@@ -1,0 +1,5 @@
+Tests folder hash: 351041e2dbf504ce883398c97c60b3d128ef5129
+Cumulus binary tag: v0.9.430
+Cumulus WASM tag: parachains-v9430
+Kagome tag: v0.9.0
+Polkadot tag: v1.0.0
