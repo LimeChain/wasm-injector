@@ -1,5 +1,6 @@
 use wasm_instrument::parity_wasm::elements::{FuncBody, ImportSection, Internal::Function, Module};
 
+/// # This trait extends the module with helper functions used for injecting code into the module.
 pub trait FunctionMapper {
     fn map_function(
         &mut self,
@@ -29,6 +30,12 @@ pub trait FunctionMapper {
 }
 
 impl FunctionMapper for Module {
+    /// # Takes a module and a function name and returns the global function index of the function.
+    /// 
+    /// # Errors
+    /// 
+    /// - Returns an error if the function is not found in the export section.
+    /// - Returns an error if the u32 cannot be mapped to usize.
     fn get_global_function_index(&mut self, function_name: &str) -> Result<usize, String> {
         let global_function_index: usize = self
             .export_section()
@@ -50,6 +57,8 @@ impl FunctionMapper for Module {
         Ok(global_function_index)
     }
 
+    /// # Takes a module and returns the length of the import section.
+    /// If there is no import section, 0 is returned.
     fn get_import_section_len(&mut self) -> Result<usize, String> {
         let import_section_len: usize = self
             .import_section()
@@ -59,6 +68,11 @@ impl FunctionMapper for Module {
         Ok(import_section_len)
     }
 
+    /// # Takes a module, a local function index and a function name and returns the function body.
+    /// 
+    /// # Errors
+    /// - Returns an error if the code section is not found.
+    /// - Returns an error if the local function index is not in the code section.
     fn get_function_body(
         &mut self,
         local_function_index: usize,
@@ -77,6 +91,7 @@ impl FunctionMapper for Module {
         Ok(function_body)
     }
 
+    /// # Takes a module and returns the index of the malloc function in the import section.
     fn get_malloc_index(&mut self) -> Result<usize, String> {
         let import_section = self.import_section_mut().ok_or("No table section")?;
         let malloc_index = import_section
@@ -94,6 +109,8 @@ impl FunctionMapper for Module {
 
         Ok(malloc_index)
     }
+
+    /// # Takes a module, a function name and a body mapper function and maps over the function body.
     fn map_function(
         &mut self,
         function_name: &str,

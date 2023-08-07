@@ -8,6 +8,13 @@ use sp_maybe_compressed_blob::{compress, decompress, CODE_BLOB_BOMB_LIMIT};
 use wasm_instrument::parity_wasm::serialize;
 use wasm_instrument::parity_wasm::{deserialize_buffer, elements::Module};
 
+/// # Save bytes to a file in the given path
+/// It will recursively create parent directories if needed, open and write to the file
+/// 
+/// # Errors
+/// 
+/// - If the file could not be opened or written to it will return an error
+/// - If the parent directories could not be created it will return an error
 pub fn save(path: &Path, bytes: &[u8]) -> Result<(), String> {
     // Recursively create parent directories if needed
     if let Some(prefix) = path.parent() {
@@ -26,6 +33,12 @@ pub fn save(path: &Path, bytes: &[u8]) -> Result<(), String> {
         .map_err(|err| format!("Could not open file: {}", err))
 }
 
+/// # Get the filename from a path
+/// 
+/// # Errors
+/// 
+/// - If the path is not a file it will return an error
+/// - If the filename could not be converted to a string it will return an error
 pub fn get_file_name(path: &Path) -> Result<&str, String> {
     path.file_name()
         .ok_or(format!("{} is not a file", path.display()))?
@@ -33,6 +46,7 @@ pub fn get_file_name(path: &Path) -> Result<&str, String> {
         .ok_or("Couldn't convert filename to string".to_string())
 }
 
+/// # Modify the filename of a path. The mapper function will be called with the current filename
 pub fn modify_file_name(path: &Path, mapper: impl Fn(&str) -> String) -> Result<PathBuf, String> {
     let file_name = get_file_name(path)?;
 
@@ -43,7 +57,13 @@ pub fn modify_file_name(path: &Path, mapper: impl Fn(&str) -> String) -> Result<
     Ok(result)
 }
 
-// Extract the module from the (maybe hexified) (maybe compressed) WASM bytes
+/// # Extract the module from the (maybe hexified) (maybe compressed) WASM bytes
+/// 
+/// # Errors
+/// 
+/// - If the bytes could not be unhexified it will return an error
+/// - If the bytes could not be decompressed it will return an error
+/// - If the bytes could not be deserialized it will return an error
 pub fn module_from_blob(blob_bytes: &[u8]) -> Result<Module, String> {
     let mut blob_bytes = blob_bytes.to_vec();
 
@@ -61,10 +81,19 @@ pub fn module_from_blob(blob_bytes: &[u8]) -> Result<Module, String> {
         .map_err(|err| format!("Could not deserialize blob: {}", err))
 }
 
+/// # Serialize the module into bytes
+/// 
+/// # Errors
+/// - If the module could not be serialized it will return an error
 pub fn blob_from_module(module: Module) -> Result<Vec<u8>, String> {
     serialize(module).map_err(|err| format!("Could not serialize module: {}", err))
 }
 
+/// #Load a module from a wasm file in the given path
+/// 
+/// # Errors
+/// - If the file could not be read it will return an error
+/// - If the module could not be deserialized it will return an error
 pub fn load_module_from_wasm(path: &Path) -> Result<Module, String> {
     // Read bytes
     let orig_bytes = &read(path).map_err(|err| format!("Could not read wasm blob: {}", err))?;
@@ -76,6 +105,10 @@ pub fn load_module_from_wasm(path: &Path) -> Result<Module, String> {
     Ok(module)
 }
 
+/// # Save a module to a wasm file in the given path
+/// 
+/// # Errors
+/// - If the module could not be compressed it will return an error
 pub fn save_module_to_wasm(
     module: Module,
     destination: &Path,
@@ -105,6 +138,9 @@ pub fn save_module_to_wasm(
     Ok(())
 }
 
+/// function hexify_bytes
+/// 
+/// Takes in bytes and returns a hexified version of them
 pub fn hexify_bytes(bytes: Vec<u8>) -> Vec<u8> {
     let mut hexified_bytes = bytes
         .iter()
@@ -118,6 +154,9 @@ pub fn hexify_bytes(bytes: Vec<u8>) -> Vec<u8> {
     hexified_bytes.into()
 }
 
+/// function unhexify_bytes
+/// 
+/// Takes in hexified bytes and returns the original bytes
 pub fn unhexify_bytes(bytes: Vec<u8>) -> Result<Vec<u8>, String> {
     bytes
         .iter()
