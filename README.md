@@ -12,7 +12,7 @@ Clone the repository and build the project with `cargo`, Rust's package manager:
 
 ```sh
 git clone https://github.com/LimeChain/parachain-conformance-dev.git
-cd wasm_injector
+cd parachain-conformance-dev
 cargo build --release
 ```
 
