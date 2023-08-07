@@ -189,15 +189,18 @@ jobs:
 
       - name: Run wasm_injector
         run: |
-          ./target/debug/wasm_injector nothing ./target/debug/test.wasm ./wasm/orig.wasm.hex --hexified
-          ./target/debug/wasm_injector stack-overflow ./target/debug/test.wasm ./wasm/stack-overflow.wasm.hex --hexified
-          ./target/debug/wasm_injector heap-overflow ./target/debug/test.wasm ./wasm/heap-overflow.wasm.hex --hexified
-          ./target/debug/wasm_injector infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
+          ./target/debug/wasm_injector convert ./target/debug/test.wasm ./wasm/orig.wasm.hex --hexified
+          ./target/debug/wasm_injector inject stack-overflow ./target/debug/test.wasm ./wasm/stack-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector inject heap-overflow ./target/debug/test.wasm ./wasm/heap-overflow.wasm.hex --hexified
+          ./target/debug/wasm_injector inject infinite-loop ./target/debug/test.wasm ./wasm/infinite-loop.wasm.hex --hexified
 
       - name: Set up Julia
         uses: julia-actions/setup-julia@v1
         with:
           version: '1.9.1'
     
-      - name: Run Julia script
-        run: julia scripts/runTests.jl
+      - name: Run Polkadot Tests
+        run: julia scripts/runTests.jl polkadot
+
+      - name: Run Kagome Tests
+        run: julia scripts/runTests.jl kagome
