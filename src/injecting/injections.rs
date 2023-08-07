@@ -36,7 +36,7 @@ type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
     Box::new(match injection {
         Injection::InfiniteLoop => inject_infinite_loop,
-        Injection::BadReturnValue => inject_jibberish_return_value,
+        Injection::BadReturnValue => inject_bad_return_value,
         Injection::StackOverflow => inject_stack_overflow,
         Injection::Noops => inject_noops,
         Injection::HeapOverflow => inject_heap_overflow,
@@ -60,7 +60,7 @@ pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     })
 }
 
-fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
+fn inject_bad_return_value(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         *func_body.code_mut() = Instructions::new(vec![
             // Last value on the stack gets returned
