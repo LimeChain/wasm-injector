@@ -12,7 +12,7 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Action {
-    #[command(about = "Injects a wasm module into another wasm module")]
+    #[command(about = "Inject invalid instructions into a wasm module")]
     Inject {
         #[arg(required = true, value_name = "injection", value_hint = ValueHint::Other)]
         injection: Injection,
@@ -37,7 +37,7 @@ enum Action {
         hexified: bool,
     },
     #[command(
-        about = "Convert a hexified and/or compressed wasm module back to raw or hexify and/or compress a raw wasm module"
+        about = "Convert from `hexified` and/or `compressed` to `raw` wasm module and vice versa"
     )]
     Convert {
         #[command(flatten)]
@@ -82,7 +82,7 @@ struct GlobalOpts {
     #[arg(required = true, help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
     source: PathBuf,
 
-    #[arg(help = "Destination file path (optional)", value_hint = ValueHint::FilePath)]
+    #[arg(help = "Destination file path (optional). If not specified, the output file will be a prefixed source file name. ", value_hint = ValueHint::FilePath)]
     destination: Option<PathBuf>,
 }
 
