@@ -23,7 +23,7 @@ enum Action {
         #[arg(
             long,
             value_name = "compressed",
-            help = "Compresses the wasm. Can be combined with `hexified`",
+            help = "Compresses the wasm. Can be used with `--hexified`",
             default_value_t = false
         )]
         compressed: bool,
@@ -31,7 +31,7 @@ enum Action {
         #[arg(
             long,
             value_name = "hexified",
-            help = "Hexifies the wasm. Can be combined with `compressed`",
+            help = "Hexifies the wasm. Can be used with `--compressed`",
             default_value_t = false
         )]
         hexified: bool,
@@ -46,7 +46,7 @@ enum Action {
         #[arg(
             long,
             value_name = "raw",
-            help = "Saves the file as raw wasm (default). Can not be combined with `compressed` or `hexified`.",
+            help = "Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`.",
             default_value_t = true,
             default_value_ifs = [
                 ("compressed", ArgPredicate::IsPresent, "false"),
@@ -59,7 +59,7 @@ enum Action {
         #[arg(
             long,
             value_name = "compressed",
-            help = "Compresses the wasm (zstd compression). Can be combined with `hexified`.",
+            help = "Compresses the wasm (zstd compression). Can be used with `--hexified`.",
             default_value_t = false
         )]
         compressed: bool,
@@ -67,7 +67,7 @@ enum Action {
         #[arg(
             long,
             value_name = "hexified",
-            help = "Hexifies the wasm. Can be combined with `compressed`",
+            help = "Hexifies the wasm. Can be used with `--compressed`",
             default_value_t = false
         )]
         hexified: bool,
