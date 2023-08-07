@@ -4,6 +4,17 @@ use wasm_instrument::parity_wasm::elements::{
 
 use super::injector::FunctionMapper;
 
+/// # Injection enum
+/// 
+/// This enum is used to select which injection to perform i.e what instructions to insert in the beginning of the WASM module.
+/// # Example
+/// 
+/// ```
+/// let mut module = load_module(); // you can use wasm_injector::util to load a module
+/// let injection = Injection::Noops;
+/// injection.inject(&mut module);
+/// ```
+
 #[derive(clap::ValueEnum, PartialEq, Eq, Clone, Debug)]
 pub enum Injection {
     Nothing,
@@ -14,7 +25,9 @@ pub enum Injection {
     HeapOverflow,
 }
 
+
 impl Injection {
+    /// # Takes a module and injects the selected injection into the module.
     pub fn inject(self, module: &mut Module) -> Result<(), String> {
         get_injection(self)(module)
     }
@@ -22,7 +35,8 @@ impl Injection {
 
 type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 
-pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
+/// # Takes an injection and returns a function that performs the injection.
+fn get_injection(injection: Injection) -> Box<InjectionFn> {
     Box::new(match injection {
         Injection::Nothing => |_| Ok(()),
         Injection::InfiniteLoop => inject_infinite_loop,
@@ -33,7 +47,8 @@ pub fn get_injection(injection: Injection) -> Box<InjectionFn> {
     })
 }
 
-pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
+/// # Takes a module and injects an infinite loop in the beginning of the module.
+fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         let code = func_body.code_mut();
 
@@ -50,6 +65,7 @@ pub fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
     })
 }
 
+/// # Takes a module and injects a store and  return on the last value from the stack in the beginning of the module.
 fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         *func_body.code_mut() = Instructions::new(vec![
@@ -60,6 +76,7 @@ fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
     })
 }
 
+/// # Tries to store memory at an address that is out of bounds.
 fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         let code = func_body.code_mut();
@@ -76,6 +93,7 @@ fn inject_stack_overflow(module: &mut Module) -> Result<(), String> {
     })
 }
 
+/// # Takes a module and injects 500 million NoOperations in the beginning of the module.
 fn inject_noops(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         // Add half a billion NoOperations to (hopefully) slow down interpretation-time
@@ -88,6 +106,7 @@ fn inject_noops(module: &mut Module) -> Result<(), String> {
     })
 }
 
+/// # Takes a module and tries to allocate a lot of memory multiple times in the beginning of the module.
 fn inject_heap_overflow(module: &mut Module) -> Result<(), String> {
     module.map_function(
         "validate_block",
