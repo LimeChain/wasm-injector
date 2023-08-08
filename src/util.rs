@@ -43,7 +43,10 @@ pub fn get_file_name(path: &Path) -> Result<&str, String> {
     path.file_name()
         .ok_or(format!("{} is not a file", path.display()))?
         .to_str()
-        .ok_or("Couldn't convert filename to string".to_string())
+        .ok_or("Couldn't convert filename to string".to_string())?
+        .split('.')
+        .next()
+        .ok_or("Couldn't get file name".to_string())
 }
 
 /// # Modify the filename of a path. The mapper function will be called with the current filename
