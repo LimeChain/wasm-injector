@@ -1,0 +1,42 @@
+name: Release MacOS - Intel
+
+on:
+  release:
+    types:
+      - created
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  deploy:
+    name: Deploy for MacOS (Intel)
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        name: [macos-12, macos-13]
+
+        include:
+          - name: macos-12
+            os: macos-12
+            artifact_name: wasm_injector
+            asset_name: wasm-injector-macos12-intel
+          - name: macos-13
+            os: macos-13
+            artifact_name: wasm_injector
+            asset_name: wasm-injector-macos13-intel
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Build
+        run: cargo build --release && mv target/release/${{ matrix.artifact_name }} target/release/${{ matrix.asset_name }}
+
+      - name: Upload binaries to release
+        run: echo ${{ secrets.PERSONAL_ACCESS_TOKEN }} | gh auth login --with-token && gh release upload ${GITHUB_REF##*/} target/release/${{ matrix.asset_name }}
