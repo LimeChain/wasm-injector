@@ -145,7 +145,7 @@ impl FunctionMapper for Module {
 }
 
 #[cfg(test)]
-mod tests {
+mod injector_tests {
     use super::*;
     use crate::util::load_module_from_wasm;
     use std::path::Path;
