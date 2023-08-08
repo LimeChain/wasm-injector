@@ -140,7 +140,7 @@ mod tests {
     const WASM_INSTRUCTION_COUNT: usize = 358;
     const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test-wasm/test.wasm");
 
-    fn load_module() -> Module{     
+    fn load_module() -> Module {
         let module_path = Path::new(WASM_PATH);
         let module = load_module_from_wasm(module_path).unwrap();
         module
