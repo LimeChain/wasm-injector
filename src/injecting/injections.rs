@@ -138,7 +138,7 @@ fn inject_heap_overflow(module: &mut Module) -> Result<(), String> {
 }
 
 #[cfg(test)]
-mod tests {
+mod injections_tests {
     use super::*;
     use crate::util::load_module_from_wasm;
     use std::path::Path;
