@@ -353,7 +353,8 @@ mod cli_tests {
 
     #[test]
     fn test_convert_raw_exludes_compressed() {
-        let result = Cli::try_parse_from(&["test", "convert", "test.wasm", "--compressed", "--raw"]);
+        let result =
+            Cli::try_parse_from(&["test", "convert", "test.wasm", "--compressed", "--raw"]);
         assert!(result.is_err());
         assert_eq!(
             result.unwrap_err().kind(),
