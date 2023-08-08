@@ -11,8 +11,8 @@ To use this utility, you need to have Rust installed on your system. If you don'
 Clone the repository and build the project with `cargo`, Rust's package manager:
 
 ```sh
-git clone https://github.com/LimeChain/parachain-conformance-dev.git
-cd parachain-conformance-dev
+git clone https://github.com/LimeChain/wasm-injector.git
+cd wasm-injector
 cargo build --release
 ```
 
@@ -109,17 +109,10 @@ or
 ./wasm_injector convert  --compressed --hexified raw_wasm_file.wasm compressed_and_hexified_wasm_file.wasm.hex
 ```
 
-To run the WASM you need Linux environment with [Zombienet](https://github.com/paritytech/zombienet)
-For each test you need to specify the path to the WASM module in the corresponding `.toml` file before running the test
-
-```sh
-zombienet -p native test ./tests/0001-parachains-pvf-compilation-time-bad.zndsl
-```
-
 ## Contributing
 
 Please feel free to contribute to the project. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
-This project is licensed under [TODO]. See the LICENSE file for details.
+This project is licensed under MIT. See the LICENSE file for details.
