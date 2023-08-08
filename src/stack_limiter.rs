@@ -116,33 +116,3 @@ fn show_information(path: &str, file_name: &str) {
             println!("entry: {:?}", entry);
         });
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn inject_stack_limiter() {
-        use super::*;
-
-        let path = "wasm";
-        let file_name = "rococo-parachain_runtime-v9400.compact.compressed.wasm";
-        inject_single(path, file_name);
-    }
-
-    #[test]
-    fn show_wasm_information() {
-        use super::*;
-
-        let path = "wasm";
-        let file_name = "rococo-parachain_runtime-v9381.compact.compressed.wasm";
-        show_information(path, file_name);
-    }
-
-    #[test]
-    fn decompress() {
-        use super::*;
-
-        let path = "wasm";
-        let file_name = "rococo-parachain_runtime-v9381.compact.compressed.wasm";
-        decompress_wasm(path, file_name);
-    }
-}

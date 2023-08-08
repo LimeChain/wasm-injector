@@ -1,10 +1,12 @@
 [package]
 name = "wasm_injector"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
+description = "Injects instructions into a WASM module"
+license = "MIT"
 
 [dependencies]
-clap = { version = "4.3.10", features = [ "derive" ] }
+clap = { version = "4.3.19", features = [ "derive" ] }
 itertools = "0.11.0"
 sp-maybe-compressed-blob = "5.0.0"
 thiserror = "1.0.40"
