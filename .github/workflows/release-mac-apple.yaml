@@ -1,0 +1,42 @@
+name: Release MacOS - Apple Silicon
+
+on:
+  release:
+    types:
+      - created
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  deploy:
+    name: Deploy for MacOS (Apple)
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        name: [macos-12-apple, macos-13-apple]
+
+        include:
+          - name: macos-12-apple
+            os: macos-12
+            artifact_name: wasm_injector
+            asset_name: wasm-injector-macos12-apple
+          - name: macos-13-apple
+            os: macos-13
+            artifact_name: wasm_injector
+            asset_name: wasm-injector-macos13-apple
+            
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Build
+        run: rustup target add aarch64-apple-darwin && cargo build --release --target aarch64-apple-darwin && mv target/aarch64-apple-darwin/release/${{ matrix.artifact_name }} target/release/${{ matrix.asset_name }}
+
+      - name: Upload binary to release
+        run: echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token && gh release upload ${GITHUB_REF##*/} target/release/${{ matrix.asset_name }}
