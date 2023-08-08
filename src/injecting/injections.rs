@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use wasm_instrument::parity_wasm::elements::{
     BlockType, FuncBody, Instruction, Instructions, Module,
 };
@@ -17,9 +18,8 @@ use super::injector::FunctionMapper;
 
 #[derive(clap::ValueEnum, PartialEq, Eq, Clone, Debug)]
 pub enum Injection {
-    Nothing,
     InfiniteLoop,
-    JibberishReturnValue,
+    BadReturnValue,
     StackOverflow,
     Noops,
     HeapOverflow,
@@ -33,14 +33,24 @@ impl Injection {
     }
 }
 
+impl Display for Injection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Injection::InfiniteLoop => write!(f, "infinite-loop"),
+            Injection::BadReturnValue => write!(f, "bad-return-value"),
+            Injection::StackOverflow => write!(f, "stack-overflow"),
+            Injection::Noops => write!(f, "noops"),
+            Injection::HeapOverflow => write!(f, "heap-overflow"),
+        }
+    }
+}
 type InjectionFn = dyn FnMut(&mut Module) -> Result<(), String>;
 
 /// # Takes an injection and returns a function that performs the injection.
 fn get_injection(injection: Injection) -> Box<InjectionFn> {
     Box::new(match injection {
-        Injection::Nothing => |_| Ok(()),
         Injection::InfiniteLoop => inject_infinite_loop,
-        Injection::JibberishReturnValue => inject_jibberish_return_value,
+        Injection::BadReturnValue => inject_bad_return_value,
         Injection::StackOverflow => inject_stack_overflow,
         Injection::Noops => inject_noops,
         Injection::HeapOverflow => inject_heap_overflow,
@@ -66,7 +76,7 @@ fn inject_infinite_loop(module: &mut Module) -> Result<(), String> {
 }
 
 /// # Takes a module and injects a store and  return on the last value from the stack in the beginning of the module.
-fn inject_jibberish_return_value(module: &mut Module) -> Result<(), String> {
+fn inject_bad_return_value(module: &mut Module) -> Result<(), String> {
     module.map_function("validate_block", |func_body: &mut FuncBody, _| {
         *func_body.code_mut() = Instructions::new(vec![
             // Last value on the stack gets returned
@@ -147,7 +157,7 @@ mod tests {
         function_body
     }
 
-    fn load_module() -> Module{     
+    fn load_module() -> Module {
         let module_path = Path::new(WASM_PATH);
         let module = load_module_from_wasm(module_path).unwrap();
         module
@@ -174,7 +184,7 @@ mod tests {
     #[test]
     fn test_inject_jibberish_return_value() {
         let mut module = load_module();
-        let injection = Injection::JibberishReturnValue;
+        let injection = Injection::BadReturnValue;
 
         assert!(injection.inject(&mut module).is_ok());
 
