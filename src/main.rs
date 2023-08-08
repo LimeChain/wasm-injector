@@ -3,14 +3,14 @@ use std::path::PathBuf;
 use wasm_injector::injecting::injections::Injection;
 use wasm_injector::util::{load_module_from_wasm, modify_file_name, save_module_to_wasm};
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, PartialEq, Eq)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     action: Action,
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Debug, Subcommand, PartialEq, Eq)]
 enum Action {
     #[command(about = "Inject invalid instructions into a wasm module")]
     Inject {
@@ -74,10 +74,7 @@ enum Action {
     },
 }
 
-#[derive(Parser, Debug, Clone)]
-struct ConvertOpts {}
-
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Clone, PartialEq, Eq)]
 struct GlobalOpts {
     #[arg(required = true, help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
     source: PathBuf,
@@ -170,4 +167,146 @@ fn main() -> Result<(), String> {
     save_module_to_wasm(module, destination.as_path(), compressed, hexified)?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod cli_tests {
+    use super::*;
+
+    #[test]
+    fn test_inject_noops() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "inject", "noops", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Inject {
+                    injection: Injection::Noops,
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_inject_heap_overflow() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "inject", "heap-overflow", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Inject {
+                    injection: Injection::HeapOverflow,
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_inject_stack_overflow() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "inject", "stack-overflow", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Inject {
+                    injection: Injection::StackOverflow,
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_inject_bad_return_value() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "inject", "bad-return-value", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Inject {
+                    injection: Injection::BadReturnValue,
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_inject_infinite_loop() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "inject", "infinite-loop", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Inject {
+                    injection: Injection::InfiniteLoop,
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_inject_invalid_injection() {
+        assert!(Cli::try_parse_from(&["test", "inject", "invalid-injection", "test.wasm"]).is_err())
+    }
+
+    #[test]
+    fn test_convert() {
+        assert_eq!(
+            Cli::try_parse_from(&["test", "convert", "test.wasm"]).unwrap(),
+            Cli {
+                action: Action::Convert {
+                    global_opts: GlobalOpts {
+                        source: PathBuf::from("test.wasm"),
+                        destination: None
+                    },
+                    raw: true,
+                    compressed: false,
+                    hexified: false
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn test_convert_raw_exludes_compressed() {
+        assert!(Cli::try_parse_from(&[
+            "test",
+            "convert",
+            "test.wasm",
+            "--compressed",
+            "--raw"
+        ])
+        .is_err())
+    }
+
+    #[test]
+    fn test_convert_raw_exludes_hexified() {
+        assert!(Cli::try_parse_from(&[
+            "test",
+            "convert",
+            "test.wasm",
+            "--hexified",
+            "--raw"
+        ])
+        .is_err())
+    }
 }
