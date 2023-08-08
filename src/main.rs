@@ -288,25 +288,16 @@ mod cli_tests {
 
     #[test]
     fn test_convert_raw_exludes_compressed() {
-        assert!(Cli::try_parse_from(&[
-            "test",
-            "convert",
-            "test.wasm",
-            "--compressed",
-            "--raw"
-        ])
-        .is_err())
+        assert!(
+            Cli::try_parse_from(&["test", "convert", "test.wasm", "--compressed", "--raw"])
+                .is_err()
+        )
     }
 
     #[test]
     fn test_convert_raw_exludes_hexified() {
-        assert!(Cli::try_parse_from(&[
-            "test",
-            "convert",
-            "test.wasm",
-            "--hexified",
-            "--raw"
-        ])
-        .is_err())
+        assert!(
+            Cli::try_parse_from(&["test", "convert", "test.wasm", "--hexified", "--raw"]).is_err()
+        )
     }
 }
