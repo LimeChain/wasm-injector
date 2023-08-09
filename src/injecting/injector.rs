@@ -31,9 +31,9 @@ pub trait FunctionMapper {
 
 impl FunctionMapper for Module {
     /// # Takes a module and a function name and returns the global function index of the function.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - Returns an error if the function is not found in the export section.
     /// - Returns an error if the u32 cannot be mapped to usize.
     fn get_global_function_index(&mut self, function_name: &str) -> Result<usize, String> {
@@ -69,7 +69,7 @@ impl FunctionMapper for Module {
     }
 
     /// # Takes a module, a local function index and a function name and returns the function body.
-    /// 
+    ///
     /// # Errors
     /// - Returns an error if the code section is not found.
     /// - Returns an error if the local function index is not in the code section.
