@@ -11,8 +11,8 @@ To use this utility, you need to have Rust installed on your system. If you don'
 Clone the repository and build the project with `cargo`, Rust's package manager:
 
 ```sh
-git clone https://github.com/LimeChain/parachain-conformance-dev.git
-cd parachain-conformance-dev
+git clone https://github.com/LimeChain/wasm-injector.git
+cd wasm-injector
 cargo build --release
 ```
 
@@ -38,12 +38,15 @@ Options:
 
 ### Inject:
 ```sh
-Usage: wasm_injector inject [OPTIONS] <injection> <SOURCE> [DESTINATION]
+Inject invalid instructions into a wasm module
+
+Usage: wasm_injector inject [OPTIONS] <injection> <function> <source> [destination]
 
 Arguments:
   <injection>    [possible values: infinite-loop, bad-return-value, stack-overflow, noops, heap-overflow]
-  <SOURCE>       Wasm source file path. Can be compressed and/or hexified.
-  [DESTINATION]  Destination file path (optional). If not specified, the output file will be a prefixed source file name. 
+  <function>     The name of the exported function to be injected with the instructions
+  <source>       Wasm source file path. Can be compressed and/or hexified
+  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name
 
 Options:
       --compressed  Compresses the wasm. Can be used with `--hexified`
@@ -53,15 +56,17 @@ Options:
 
 ### Convert:
 ```sh
-Usage: wasm_injector convert [OPTIONS] <SOURCE> [DESTINATION]
+Convert from `hexified` and/or `compressed` to `raw` wasm module and vice versa
+
+Usage: wasm_injector convert [OPTIONS] <source> [destination]
 
 Arguments:
-  <SOURCE>       Wasm source file path. Can be compressed and/or hexified.
-  [DESTINATION]  Destination file path (optional). If not specified, the output file will be a prefixed source file name. 
+  <source>       Wasm source file path. Can be compressed and/or hexified.
+  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name
 
 Options:
-      --raw         Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`.
-      --compressed  Compresses the wasm (zstd compression). Can be used with `--hexified`.
+      --raw         Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`
+      --compressed  Compresses the wasm (zstd compression). Can be used with `--hexified`
       --hexified    Hexifies the wasm. Can be used with `--compressed`
   -h, --help        Print help
 ```
@@ -72,13 +77,13 @@ Options:
 To inject code into a wasm file, compress and hexify it, you can run:
 
 ```sh
-./wasm_injector inject noops my_wasm_file.wasm --compressed --hexified
+./wasm_injector inject noops validate_block my_wasm_file.wasm --compressed --hexified
 ```
 
 To specify a custom destination path, you can run:
 
 ```sh
-./wasm_injector inject noops my_wasm_file.wasm my_destination_directory/injected_new_file.wasm
+./wasm_injector inject noops validate_block my_wasm_file.wasm my_destination_directory/injected_new_file.wasm
 ```
 
 ### Convert:
@@ -104,17 +109,10 @@ or
 ./wasm_injector convert  --compressed --hexified raw_wasm_file.wasm compressed_and_hexified_wasm_file.wasm.hex
 ```
 
-To run the WASM you need Linux environment with [Zombienet](https://github.com/paritytech/zombienet)
-For each test you need to specify the path to the WASM module in the corresponding `.toml` file before running the test
-
-```sh
-zombienet -p native test ./tests/0001-parachains-pvf-compilation-time-bad.zndsl
-```
-
 ## Contributing
 
 Please feel free to contribute to the project. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
-This project is licensed under [TODO]. See the LICENSE file for details.
+This project is licensed under MIT. See the LICENSE file for details.
