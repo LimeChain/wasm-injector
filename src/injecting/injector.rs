@@ -4,12 +4,12 @@ pub trait FunctionMapper {
     fn map_function(
         &mut self,
         function_name: &str,
-        body_mapper: impl Fn(&mut FuncBody, usize),
+        body_mapper: impl Fn(&mut FuncBody),
     ) -> Result<(), String>;
 
     fn map_functions(
         &mut self,
-        function_name_body_mapper_pairs: Vec<(&str, impl Fn(&mut FuncBody, usize))>,
+        function_name_body_mapper_pairs: Vec<(&str, impl Fn(&mut FuncBody))>,
     ) -> Result<(), String> {
         function_name_body_mapper_pairs
             .into_iter()
@@ -94,10 +94,11 @@ impl FunctionMapper for Module {
 
         Ok(malloc_index)
     }
+
     fn map_function(
         &mut self,
         function_name: &str,
-        body_mapper: impl Fn(&mut FuncBody, usize),
+        body_mapper: impl Fn(&mut FuncBody),
     ) -> Result<(), String> {
         // NOTE:
         // Indexing for local functions includes both imported and own (local)
@@ -110,9 +111,6 @@ impl FunctionMapper for Module {
         // Count the number of imported functions listed by the module
         let import_section_len: usize = self.get_import_section_len()?;
 
-        // get the global function index of the dynamic memory allocation method
-        let malloc_index = self.get_malloc_index()?;
-
         // Compute the local function index (for the code section) by subtracting
         // the number of imported functions from the global function index
         let local_function_index = global_function_index - import_section_len;
@@ -121,7 +119,7 @@ impl FunctionMapper for Module {
         let function_body = self.get_function_body(local_function_index, function_name)?;
 
         // Map over the function_body
-        body_mapper(function_body, malloc_index);
+        body_mapper(function_body);
 
         Ok(())
     }

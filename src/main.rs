@@ -14,8 +14,11 @@ struct Cli {
 enum Action {
     #[command(about = "Inject invalid instructions into a wasm module")]
     Inject {
-        #[arg(required = true, value_name = "injection", value_hint = ValueHint::Other)]
+        #[arg(required = true, value_name = "injection",value_hint = ValueHint::Other)]
         injection: Injection,
+
+        #[arg(required = true, value_name = "function", help = "The name of the exported function to be injected with the instructions", value_hint = ValueHint::Other)]
+        function: String,
 
         #[command(flatten)]
         global_opts: GlobalOpts,
@@ -46,7 +49,7 @@ enum Action {
         #[arg(
             long,
             value_name = "raw",
-            help = "Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`.",
+            help = "Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`",
             default_value_t = true,
             default_value_ifs = [
                 ("compressed", ArgPredicate::IsPresent, "false"),
@@ -59,7 +62,7 @@ enum Action {
         #[arg(
             long,
             value_name = "compressed",
-            help = "Compresses the wasm (zstd compression). Can be used with `--hexified`.",
+            help = "Compresses the wasm (zstd compression). Can be used with `--hexified`",
             default_value_t = false
         )]
         compressed: bool,
@@ -76,10 +79,10 @@ enum Action {
 
 #[derive(Parser, Debug, Clone, PartialEq, Eq)]
 struct GlobalOpts {
-    #[arg(required = true, help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
+    #[arg(required = true, value_name = "source", help = "Wasm source file path. Can be compressed and/or hexified", value_hint = ValueHint::FilePath)]
     source: PathBuf,
 
-    #[arg(help = "Destination file path (optional). If not specified, the output file will be a prefixed source file name. ", value_hint = ValueHint::FilePath)]
+    #[arg(value_name = "destination", help = "Destination file path (optional). If not specified, the output file will be a prefixed source file name", value_hint = ValueHint::FilePath)]
     destination: Option<PathBuf>,
 }
 
@@ -110,10 +113,6 @@ fn main() -> Result<(), String> {
                 hexified,
                 ..
             } => {
-                println!(
-                    "raw: {}, compressed: {}, hexified: {}",
-                    raw, compressed, hexified
-                );
                 if *raw {
                     file_name = format!("raw-{}.wasm", file_name);
                 }
@@ -159,9 +158,14 @@ fn main() -> Result<(), String> {
     // Get the module
     let mut module = load_module_from_wasm(global_opts.source.as_path())?;
 
-    if let Action::Inject { injection, .. } = action {
+    if let Action::Inject {
+        injection,
+        function,
+        ..
+    } = action
+    {
         // Inject the module
-        injection.inject(&mut module)?;
+        injection.inject(&mut module, &function)?;
     }
 
     save_module_to_wasm(module, destination.as_path(), compressed, hexified)?;
@@ -173,13 +177,31 @@ fn main() -> Result<(), String> {
 mod cli_tests {
     use super::*;
 
+    const FUNCTION_NAME: &str = "validate_block";
+
+    #[test]
+    fn test_invalid_subcommand() {
+        let result = Cli::try_parse_from(&["test", "invalid"]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().kind(),
+            clap::error::ErrorKind::InvalidSubcommand
+        )
+    }
+
+    #[test]
+    fn function_name_is_required() {
+        assert!(Cli::try_parse_from(&["test", "inject", "noops", "test.wasm"]).is_err())
+    }
+
     #[test]
     fn test_inject_noops() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "noops", "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&["test", "inject", "noops", FUNCTION_NAME, "test.wasm"]).unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::Noops,
+                    function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -194,10 +216,18 @@ mod cli_tests {
     #[test]
     fn test_inject_heap_overflow() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "heap-overflow", "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&[
+                "test",
+                "inject",
+                "heap-overflow",
+                FUNCTION_NAME,
+                "test.wasm"
+            ])
+            .unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::HeapOverflow,
+                    function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -212,10 +242,18 @@ mod cli_tests {
     #[test]
     fn test_inject_stack_overflow() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "stack-overflow", "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&[
+                "test",
+                "inject",
+                "stack-overflow",
+                FUNCTION_NAME,
+                "test.wasm"
+            ])
+            .unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::StackOverflow,
+                    function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -230,10 +268,18 @@ mod cli_tests {
     #[test]
     fn test_inject_bad_return_value() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "bad-return-value", "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&[
+                "test",
+                "inject",
+                "bad-return-value",
+                FUNCTION_NAME,
+                "test.wasm"
+            ])
+            .unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::BadReturnValue,
+                    function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -248,10 +294,18 @@ mod cli_tests {
     #[test]
     fn test_inject_infinite_loop() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "infinite-loop", "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&[
+                "test",
+                "inject",
+                "infinite-loop",
+                FUNCTION_NAME,
+                "test.wasm"
+            ])
+            .unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::InfiniteLoop,
+                    function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -265,7 +319,18 @@ mod cli_tests {
 
     #[test]
     fn test_inject_invalid_injection() {
-        assert!(Cli::try_parse_from(&["test", "inject", "invalid-injection", "test.wasm"]).is_err())
+        let result = Cli::try_parse_from(&[
+            "test",
+            "inject",
+            "invalid-injection",
+            &FUNCTION_NAME,
+            "test.wasm",
+        ]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().kind(),
+            clap::error::ErrorKind::InvalidValue
+        )
     }
 
     #[test]
@@ -288,16 +353,22 @@ mod cli_tests {
 
     #[test]
     fn test_convert_raw_exludes_compressed() {
-        assert!(
-            Cli::try_parse_from(&["test", "convert", "test.wasm", "--compressed", "--raw"])
-                .is_err()
-        )
+        let result =
+            Cli::try_parse_from(&["test", "convert", "test.wasm", "--compressed", "--raw"]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().kind(),
+            clap::error::ErrorKind::ArgumentConflict
+        );
     }
 
     #[test]
     fn test_convert_raw_exludes_hexified() {
-        assert!(
-            Cli::try_parse_from(&["test", "convert", "test.wasm", "--hexified", "--raw"]).is_err()
-        )
+        let result = Cli::try_parse_from(&["test", "convert", "test.wasm", "--hexified", "--raw"]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().kind(),
+            clap::error::ErrorKind::ArgumentConflict
+        );
     }
 }
