@@ -6,10 +6,10 @@ use wasm_instrument::parity_wasm::elements::{
 use super::injector::FunctionMapper;
 
 /// # Injection enum
-/// 
+///
 /// This enum is used to select which injection to perform i.e what instructions to insert in the beginning of the WASM module.
 /// # Example
-/// 
+///
 /// ```
 /// let mut module = load_module(); // you can use wasm_injector::util to load a module
 /// let injection = Injection::Noops;
@@ -24,7 +24,6 @@ pub enum Injection {
     Noops,
     HeapOverflow,
 }
-
 
 impl Injection {
     /// # Takes a module and injects the selected injection into the module.
