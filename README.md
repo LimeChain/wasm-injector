@@ -44,9 +44,9 @@ Usage: wasm_injector inject [OPTIONS] <injection> <function> <source> [destinati
 
 Arguments:
   <injection>    [possible values: infinite-loop, bad-return-value, stack-overflow, noops, heap-overflow]
-  <function>     The name of the exported function to be injected
-  <source>       Wasm source file path. Can be compressed and/or hexified.
-  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name. 
+  <function>     The name of the exported function to be injected with the instructions
+  <source>       Wasm source file path. Can be compressed and/or hexified
+  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name
 
 Options:
       --compressed  Compresses the wasm. Can be used with `--hexified`
@@ -62,11 +62,11 @@ Usage: wasm_injector convert [OPTIONS] <source> [destination]
 
 Arguments:
   <source>       Wasm source file path. Can be compressed and/or hexified.
-  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name. 
+  [destination]  Destination file path (optional). If not specified, the output file will be a prefixed source file name
 
 Options:
-      --raw         Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`.
-      --compressed  Compresses the wasm (zstd compression). Can be used with `--hexified`.
+      --raw         Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`
+      --compressed  Compresses the wasm (zstd compression). Can be used with `--hexified`
       --hexified    Hexifies the wasm. Can be used with `--compressed`
   -h, --help        Print help
 ```

@@ -17,7 +17,7 @@ enum Action {
         #[arg(required = true, value_name = "injection",value_hint = ValueHint::Other)]
         injection: Injection,
 
-        #[arg(required = true, value_name = "function", help = "The name of the exported function to be injected", value_hint = ValueHint::Other)]
+        #[arg(required = true, value_name = "function", help = "The name of the exported function to be injected with the instructions", value_hint = ValueHint::Other)]
         function: String,
 
         #[command(flatten)]
@@ -49,7 +49,7 @@ enum Action {
         #[arg(
             long,
             value_name = "raw",
-            help = "Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`.",
+            help = "Saves the file as raw wasm (default). Can not be used with `--compressed` or `--hexified`",
             default_value_t = true,
             default_value_ifs = [
                 ("compressed", ArgPredicate::IsPresent, "false"),
@@ -62,7 +62,7 @@ enum Action {
         #[arg(
             long,
             value_name = "compressed",
-            help = "Compresses the wasm (zstd compression). Can be used with `--hexified`.",
+            help = "Compresses the wasm (zstd compression). Can be used with `--hexified`",
             default_value_t = false
         )]
         compressed: bool,
@@ -79,10 +79,10 @@ enum Action {
 
 #[derive(Parser, Debug, Clone, PartialEq, Eq)]
 struct GlobalOpts {
-    #[arg(required = true, value_name = "source", help = "Wasm source file path. Can be compressed and/or hexified.", value_hint = ValueHint::FilePath)]
+    #[arg(required = true, value_name = "source", help = "Wasm source file path. Can be compressed and/or hexified", value_hint = ValueHint::FilePath)]
     source: PathBuf,
 
-    #[arg(value_name = "destination", help = "Destination file path (optional). If not specified, the output file will be a prefixed source file name. ", value_hint = ValueHint::FilePath)]
+    #[arg(value_name = "destination", help = "Destination file path (optional). If not specified, the output file will be a prefixed source file name", value_hint = ValueHint::FilePath)]
     destination: Option<PathBuf>,
 }
 
