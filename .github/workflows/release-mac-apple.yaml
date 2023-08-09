@@ -28,12 +28,8 @@ jobs:
             asset_name: wasm-injector-macos13-apple
             
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Build
         run: rustup target add aarch64-apple-darwin && cargo build --release --target aarch64-apple-darwin && mv target/aarch64-apple-darwin/release/${{ matrix.artifact_name }} target/release/${{ matrix.asset_name }}
