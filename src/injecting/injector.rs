@@ -152,7 +152,7 @@ mod injector_tests {
     const IMPORT_SECTION_LENGTH: usize = 39;
     const MALLOC_INDEX: usize = 25;
     const WASM_INSTRUCTION_COUNT: usize = 358;
-    const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test-wasm/test.wasm");
+    const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/samples/example.wasm");
 
     fn load_module() -> Module {
         let module_path = Path::new(WASM_PATH);

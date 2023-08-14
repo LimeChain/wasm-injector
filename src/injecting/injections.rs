@@ -7,13 +7,20 @@ use super::injector::FunctionMapper;
 
 /// # Injection enum
 ///
-/// This enum is used to select which injection to perform i.e what instructions to insert in the beginning of the WASM module.
+/// This enum is used to select which injection to perform i.e what instructions to insert in the beginning of a specified export function in the WASM module.
 /// # Example
 ///
 /// ```
-/// let mut module = load_module(); // you can use wasm_injector::util to load a module
-/// let injection = Injection::Noops;
-/// injection.inject(&mut module);
+/// use std::path::Path;
+/// use wasm_injector::{ Injection, util::load_module_from_wasm };
+///
+/// # fn main() -> Result<(), String> {
+/// let source = Path::new("samples/example.wasm");
+/// let mut module = load_module_from_wasm(source)?;   
+/// let injection = Injection::InfiniteLoop;
+/// injection.inject(&mut module, "validate_block")?;
+/// # Ok(())
+/// # }
 /// ```
 
 #[derive(clap::ValueEnum, PartialEq, Eq, Clone, Debug)]
@@ -57,7 +64,7 @@ fn get_injection(injection: Injection) -> Box<InjectionFn> {
 }
 
 /// # Takes a module and injects an infinite loop in the beginning of the module.
-pub fn inject_infinite_loop(module: &mut Module, function_name: &str) -> Result<(), String> {
+fn inject_infinite_loop(module: &mut Module, function_name: &str) -> Result<(), String> {
     module.map_function(function_name, |func_body: &mut FuncBody| {
         let code = func_body.code_mut();
 
@@ -146,7 +153,7 @@ mod injections_tests {
     use std::path::Path;
 
     const FUNCTION_NAME: &'static str = "validate_block";
-    const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/test-wasm/test.wasm");
+    const WASM_PATH: &'static str = concat!(env!("CARGO_MANIFEST_DIR"), "/samples/example.wasm");
 
     fn get_function_body(module: &mut Module) -> &mut FuncBody {
         let function_name = "validate_block";
