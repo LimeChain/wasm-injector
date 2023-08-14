@@ -4,12 +4,24 @@
 //! predefined injections. The injections are primarily meant to be used for testing polkadot parachains hosts.
 //! # Example
 //! ```
-//! use wasm_injector::{load_module_from_wasm, save_module_to_wasm, Injection};
+//! use std::path::Path;
+//! use wasm_injector::{Injection, load_module_from_wasm, save_module_to_wasm};
 //!
-//! let mut module = load_module_from_wasm(source.as_path())?; // supply your own path here
-//! let injection = Injection::Noops; // choose your injection
-//! injection.inject(&mut module)?; // inject the module
-//! save_module_to_wasm(module, destination.as_path(), compressed, hexified)?; // save the module in your destination. You can choose to compress and/or hexify the module.
+//! # fn main() -> Result<(), String> {
+//! let source = Path::new("samples/example.wasm");
+//! let destination = Path::new("samples/injected_example.wasm");
+//! let compressed = false;
+//! let hexified = true;
+//!
+//! let mut module = load_module_from_wasm(source)?; // supply your own path here
+//! let injection = Injection::StackOverflow; // choose your injection
+//! injection.inject(&mut module, "validate_block")?; // inject the instruction into the specified wasm export function
+//!
+//! save_module_to_wasm(module, destination, compressed, hexified)?; // save the module in your destination. You can choose to compress and/or hexify the module.
+//!     
+//! # std::fs::remove_file(destination);
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod injecting;
