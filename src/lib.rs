@@ -15,7 +15,7 @@
 //!
 //! let mut module = load_module_from_wasm(source)?; // supply your own path here
 //! let injection = Injection::StackOverflow; // choose your injection
-//! injection.inject(&mut module, "validate_block")?; // inject the instruction into the specified wasm export function
+//! injection.inject(&mut module, "validate_block", None)?; // inject the instruction into the specified wasm export function
 //!
 //! save_module_to_wasm(module, destination, compressed, hexified)?; // save the module in your destination. You can choose to compress and/or hexify the module.
 //!     

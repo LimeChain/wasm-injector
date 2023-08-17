@@ -1,4 +1,6 @@
-use clap::{builder::ArgPredicate, Parser, Subcommand, ValueHint};
+use clap::{
+    builder::ArgPredicate, error::ErrorKind, CommandFactory, Parser, Subcommand, ValueHint,
+};
 use std::path::PathBuf;
 use wasm_injector::injecting::injections::Injection;
 use wasm_injector::util::{load_module_from_wasm, modify_file_name, save_module_to_wasm};
@@ -14,11 +16,19 @@ struct Cli {
 enum Action {
     #[command(about = "Inject invalid instructions into a wasm module")]
     Inject {
-        #[arg(required = true, value_name = "injection",value_hint = ValueHint::Other)]
+        #[arg(value_enum, required = true, requires_if("noops", "size"), value_name = "injection",value_hint = ValueHint::Other)]
         injection: Injection,
 
         #[arg(required = true, value_name = "function", help = "The name of the exported function to be injected with the instructions", value_hint = ValueHint::Other)]
         function: String,
+
+        #[arg(
+            long,
+            value_name = "size", 
+            help = "The number of noops to be injected in MB (1 NOP = 1 byte)", 
+            value_hint = ValueHint::Other
+        )]
+        size: Option<i16>,
 
         #[command(flatten)]
         global_opts: GlobalOpts,
@@ -88,6 +98,25 @@ struct GlobalOpts {
 
 fn main() -> Result<(), String> {
     let Cli { action } = Cli::parse();
+
+    if let Action::Inject {
+        injection, size, ..
+    } = &action
+    {
+        match injection {
+            Injection::Noops => {}
+            _ => {
+                if size.is_some() {
+                    let mut cmd = Cli::command();
+                    cmd.error(
+                        ErrorKind::ArgumentConflict,
+                        "The `size` argument is only valid for the `noops` injection".to_string(),
+                    )
+                    .exit();
+                }
+            }
+        }
+    }
 
     let calculate_default_destination_file_name = |file_name: &str| {
         let mut file_name = String::from(file_name);
@@ -161,11 +190,12 @@ fn main() -> Result<(), String> {
     if let Action::Inject {
         injection,
         function,
+        size,
         ..
     } = action
     {
         // Inject the module
-        injection.inject(&mut module, &function)?;
+        injection.inject(&mut module, &function, size)?;
     }
 
     save_module_to_wasm(module, destination.as_path(), compressed, hexified)?;
@@ -197,10 +227,20 @@ mod cli_tests {
     #[test]
     fn test_inject_noops() {
         assert_eq!(
-            Cli::try_parse_from(&["test", "inject", "noops", FUNCTION_NAME, "test.wasm"]).unwrap(),
+            Cli::try_parse_from(&[
+                "test",
+                "inject",
+                "noops",
+                "--size",
+                "20",
+                FUNCTION_NAME,
+                "test.wasm"
+            ])
+            .unwrap(),
             Cli {
                 action: Action::Inject {
                     injection: Injection::Noops,
+                    size: Some(20),
                     function: FUNCTION_NAME.to_string(),
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
@@ -210,6 +250,16 @@ mod cli_tests {
                     hexified: false
                 }
             }
+        )
+    }
+
+    #[test]
+    fn test_inject_noops_requires_size_arg() {
+        let result = Cli::try_parse_from(&["test", "inject", "noops", FUNCTION_NAME, "test.wasm"]);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().kind(),
+            clap::error::ErrorKind::MissingRequiredArgument
         )
     }
 
@@ -228,6 +278,7 @@ mod cli_tests {
                 action: Action::Inject {
                     injection: Injection::HeapOverflow,
                     function: FUNCTION_NAME.to_string(),
+                    size: None,
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -254,6 +305,7 @@ mod cli_tests {
                 action: Action::Inject {
                     injection: Injection::StackOverflow,
                     function: FUNCTION_NAME.to_string(),
+                    size: None,
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -280,6 +332,7 @@ mod cli_tests {
                 action: Action::Inject {
                     injection: Injection::BadReturnValue,
                     function: FUNCTION_NAME.to_string(),
+                    size: None,
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None
@@ -306,6 +359,7 @@ mod cli_tests {
                 action: Action::Inject {
                     injection: Injection::InfiniteLoop,
                     function: FUNCTION_NAME.to_string(),
+                    size: None,
                     global_opts: GlobalOpts {
                         source: PathBuf::from("test.wasm"),
                         destination: None

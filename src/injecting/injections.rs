@@ -18,7 +18,7 @@ use super::injector::FunctionMapper;
 /// let source = Path::new("samples/example.wasm");
 /// let mut module = load_module_from_wasm(source)?;   
 /// let injection = Injection::InfiniteLoop;
-/// injection.inject(&mut module, "validate_block")?;
+/// injection.inject(&mut module, "validate_block", None)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -34,8 +34,19 @@ pub enum Injection {
 
 impl Injection {
     /// # Takes a module and injects the selected injection into the module.
-    pub fn inject(self, module: &mut Module, function: &str) -> Result<(), String> {
-        get_injection(self)(module, function)
+    pub fn inject(
+        self,
+        module: &mut Module,
+        function: &str,
+        size: Option<i16>,
+    ) -> Result<(), String> {
+        match self {
+            Injection::InfiniteLoop => inject_infinite_loop(module, function),
+            Injection::BadReturnValue => inject_bad_return_value(module, function),
+            Injection::StackOverflow => inject_stack_overflow(module, function),
+            Injection::Noops => inject_noops(module, function, size),
+            Injection::HeapOverflow => inject_heap_overflow(module, function),
+        }
     }
 }
 
@@ -49,18 +60,6 @@ impl Display for Injection {
             Injection::HeapOverflow => write!(f, "heap-overflow"),
         }
     }
-}
-type InjectionFn = dyn FnMut(&mut Module, &str) -> Result<(), String>;
-
-/// # Takes an injection and returns a function that performs the injection.
-fn get_injection(injection: Injection) -> Box<InjectionFn> {
-    Box::new(match injection {
-        Injection::InfiniteLoop => inject_infinite_loop,
-        Injection::BadReturnValue => inject_bad_return_value,
-        Injection::StackOverflow => inject_stack_overflow,
-        Injection::Noops => inject_noops,
-        Injection::HeapOverflow => inject_heap_overflow,
-    })
 }
 
 /// # Takes a module and injects an infinite loop in the beginning of the module.
@@ -109,13 +108,14 @@ fn inject_stack_overflow(module: &mut Module, function_name: &str) -> Result<(),
     })
 }
 
-/// # Takes a module and injects 500 million NoOperations in the beginning of the module.
-fn inject_noops(module: &mut Module, function_name: &str) -> Result<(), String> {
+/// # Takes a module and injects specified size in MB of NoOperations in the beginning of the module.
+fn inject_noops(module: &mut Module, function_name: &str, size: Option<i16>) -> Result<(), String> {
     module.map_function(function_name, |func_body: &mut FuncBody| {
-        // Add half a billion NoOperations to (hopefully) slow down interpretation-time
         let code = func_body.code_mut();
+        let size = size.expect("No size given");
+        let nops_count = (size as usize) * 1024 * 1024;
 
-        let mut nops = vec![Instruction::Nop; 500_000_000];
+        let mut nops = vec![Instruction::Nop; nops_count];
         nops.append(code.elements_mut());
 
         *code.elements_mut() = nops;
@@ -123,6 +123,8 @@ fn inject_noops(module: &mut Module, function_name: &str) -> Result<(), String> 
 }
 
 /// # Takes a module and tries to allocate a lot of memory multiple times in the beginning of the module.
+/// # This injection relies on the existnce of the `ext_allocator_malloc` function as per
+/// # Polkadot's specification https://spec.polkadot.network/chap-host-api#id-ext_allocator_malloc
 fn inject_heap_overflow(module: &mut Module, function_name: &str) -> Result<(), String> {
     let malloc_index = &module.get_malloc_index().expect("No malloc function");
 
@@ -178,7 +180,7 @@ mod injections_tests {
         let mut module = load_module();
 
         let injection = Injection::InfiniteLoop;
-        assert!(injection.inject(&mut module, FUNCTION_NAME).is_ok());
+        assert!(injection.inject(&mut module, FUNCTION_NAME, None).is_ok());
 
         let function_body = get_function_body(&mut module);
 
@@ -196,7 +198,7 @@ mod injections_tests {
         let mut module = load_module();
         let injection = Injection::BadReturnValue;
 
-        assert!(injection.inject(&mut module, FUNCTION_NAME).is_ok());
+        assert!(injection.inject(&mut module, FUNCTION_NAME, None).is_ok());
 
         let function_body = get_function_body(&mut module);
 
@@ -209,7 +211,7 @@ mod injections_tests {
         let mut module = load_module();
 
         let injection = Injection::StackOverflow;
-        assert!(injection.inject(&mut module, FUNCTION_NAME).is_ok());
+        assert!(injection.inject(&mut module, FUNCTION_NAME, None).is_ok());
 
         let function_body = get_function_body(&mut module);
 
@@ -226,7 +228,9 @@ mod injections_tests {
         let mut module = load_module();
 
         let injection = Injection::Noops;
-        assert!(injection.inject(&mut module, FUNCTION_NAME).is_ok());
+        assert!(injection
+            .inject(&mut module, FUNCTION_NAME, Some(10))
+            .is_ok());
 
         let function_body = get_function_body(&mut module);
 
@@ -239,7 +243,7 @@ mod injections_tests {
         let mut module = load_module();
 
         let injection = Injection::HeapOverflow;
-        assert!(injection.inject(&mut module, FUNCTION_NAME).is_ok());
+        assert!(injection.inject(&mut module, FUNCTION_NAME, None).is_ok());
 
         let index = module.get_malloc_index().unwrap() as u32;
         let function_body = get_function_body(&mut module);
