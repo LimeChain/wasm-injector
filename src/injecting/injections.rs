@@ -113,7 +113,7 @@ fn inject_noops(module: &mut Module, function_name: &str, size: Option<i16>) -> 
     module.map_function(function_name, |func_body: &mut FuncBody| {
         let code = func_body.code_mut();
         let size = size.expect("No size given");
-        let nops_count = (size as usize) * 1000 * 1000;
+        let nops_count = (size as usize) * 1024 * 1024;
 
         let mut nops = vec![Instruction::Nop; nops_count];
         nops.append(code.elements_mut());
