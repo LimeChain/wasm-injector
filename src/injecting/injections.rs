@@ -113,7 +113,12 @@ fn inject_noops(module: &mut Module, function_name: &str, size: Option<i16>) -> 
     module.map_function(function_name, |func_body: &mut FuncBody| {
         let code = func_body.code_mut();
         let size = size.expect("No size given");
-        let nops_count = (size as usize) * 1024 * 1024;
+
+        // MB and MiB both represent digital storage units, whereas Mb refers to data transmission rates.
+        // MB is based on decimal prefixes (1 MB = 1,000,000 bytes), while MiB uses binary prefixes (1 MiB = 1,048,576 bytes).
+        // To convert between Megabytes and Mebibytes, one can use the conversion factor of 1 MB ≈ 0.9537 MiB
+        // That's why we multiply by 1000 instead of 1024
+        let nops_count = (size as usize) * 1000 * 1000;
 
         let mut nops = vec![Instruction::Nop; nops_count];
         nops.append(code.elements_mut());

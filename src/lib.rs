@@ -25,7 +25,6 @@
 //! ```
 
 pub mod injecting;
-pub mod stack_limiter;
 pub mod util;
 
 pub use self::injecting::injections::Injection;
