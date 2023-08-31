@@ -4,10 +4,11 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use itertools::Itertools;
-use sp_maybe_compressed_blob::{compress, decompress, CODE_BLOB_BOMB_LIMIT};
+use sp_maybe_compressed_blob::{compress, decompress};
 use wasm_instrument::parity_wasm::serialize;
 use wasm_instrument::parity_wasm::{deserialize_buffer, elements::Module};
 
+const CODE_BLOB_BOMB_LIMIT: usize = 70 * 1024 * 1024;
 /// # Save bytes to a file in the given path
 /// It will recursively create parent directories if needed, open and write to the file
 ///
